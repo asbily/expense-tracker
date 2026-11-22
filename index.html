@@ -1,1 +1,4411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" id="metaThemeColor" content="#f5f6f8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Asbily Expense Tracker</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ==========================================================================
+   MATERIAL DESIGN 3 (MATERIAL YOU) TOKENS & DYNAMIC ACCENT PALETTES
+   ========================================================================== */
+:root {
+  --md-bg: #eef0f4;
+  --md-surface: #f8f9fb;
+  --md-surface-container-lowest: #ffffff;
+  --md-surface-container-low: #f2f4f7;
+  --md-surface-container: #eceff4;
+  --md-surface-container-high: #e4e8ef;
+  --md-surface-container-highest: #dce1ea;
+  --md-on-surface: #111318;
+  --md-on-surface-variant: #44474f;
+  --md-outline: #74777f;
+  --md-outline-variant: #dfe2e8;
+
+  /* Default Accent: Obsidian Monochrome */
+  --md-primary: #14171f;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #dfe3ec;
+  --md-on-primary-container: #10131a;
+  --md-secondary-container: #e2e6ef;
+  --md-on-secondary-container: #151821;
+
+  --md-income: #0d7a4f;
+  --md-income-container: #e3f5ed;
+  --md-expense: #c63636;
+  --md-expense-container: #fdeaea;
+  --md-warning: #b06508;
+  --md-warning-container: #fef4e4;
+
+  --ripple-color: rgba(17, 19, 24, 0.11);
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --elev-2: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --elev-3: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+/* Accent Theme: Emerald Finance */
+body[data-accent="emerald"] {
+  --md-primary: #0b6b46;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #d3f3e3;
+  --md-on-primary-container: #052e1d;
+  --md-secondary-container: #d9efe4;
+  --md-on-secondary-container: #0a291b;
+}
+
+/* Accent Theme: Cobalt Slate */
+body[data-accent="cobalt"] {
+  --md-primary: #1b56b3;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #dae6ff;
+  --md-on-primary-container: #081e47;
+  --md-secondary-container: #dfe7f7;
+  --md-on-secondary-container: #10203d;
+}
+
+/* Accent Theme: Deep Teal */
+body[data-accent="teal"] {
+  --md-primary: #0c6873;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #d0f0f5;
+  --md-on-primary-container: #04282d;
+  --md-secondary-container: #d8ecef;
+  --md-on-secondary-container: #0b262a;
+}
+
+/* Dark Mode Material 3 Surfaces */
+body.dark {
+  --md-bg: #07080a;
+  --md-surface: #0f1115;
+  --md-surface-container-lowest: #0a0b0e;
+  --md-surface-container-low: #15181e;
+  --md-surface-container: #1b1f26;
+  --md-surface-container-high: #232831;
+  --md-surface-container-highest: #2c323d;
+  --md-on-surface: #f1f3f7;
+  --md-on-surface-variant: #b4b9c4;
+  --md-outline: #858b98;
+  --md-outline-variant: #262b34;
+
+  --md-primary: #e8ecf5;
+  --md-on-primary: #10131a;
+  --md-primary-container: #2a303d;
+  --md-on-primary-container: #eef1f8;
+  --md-secondary-container: #272d38;
+  --md-on-secondary-container: #e8ecf5;
+
+  --md-income: #3dd193;
+  --md-income-container: rgba(61, 209, 147, 0.14);
+  --md-expense: #f46c6c;
+  --md-expense-container: rgba(244, 108, 108, 0.14);
+  --md-warning: #f2aa4c;
+  --md-warning-container: rgba(242, 170, 76, 0.14);
+
+  --ripple-color: rgba(241, 243, 247, 0.12);
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --elev-2: 0 6px 16px rgba(0, 0, 0, 0.45);
+  --elev-3: 0 12px 28px rgba(0, 0, 0, 0.6);
+}
+
+body.dark[data-accent="emerald"] {
+  --md-primary: #52dfa3;
+  --md-on-primary: #032617;
+  --md-primary-container: #12442e;
+  --md-on-primary-container: #d3f3e3;
+  --md-secondary-container: #183b2b;
+  --md-on-secondary-container: #d3f3e3;
+}
+
+body.dark[data-accent="cobalt"] {
+  --md-primary: #8ab4ff;
+  --md-on-primary: #061b42;
+  --md-primary-container: #183a75;
+  --md-on-primary-container: #dae6ff;
+  --md-secondary-container: #1d335c;
+  --md-on-secondary-container: #dae6ff;
+}
+
+body.dark[data-accent="teal"] {
+  --md-primary: #66d9e8;
+  --md-on-primary: #03252a;
+  --md-primary-container: #11434a;
+  --md-on-primary-container: #d0f0f5;
+  --md-secondary-container: #173a40;
+  --md-on-secondary-container: #d0f0f5;
+}
+
+/* ==========================================================================
+   BASE & ANDROID MOBILE SHELL
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--md-bg);
+  color: var(--md-on-surface);
+  font-size: 14px;
+  line-height: 1.48;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "cv05" 1;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  user-select: none;
+}
+
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
+}
+
+/* Material Tactile Ripple Container */
+.ripple-host {
+  position: relative;
+  overflow: hidden;
+}
+
+.md-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--ripple-color);
+  transform: scale(0);
+  animation: mdRippleAnim 0.48s cubic-bezier(0.2, 0, 0, 1);
+  pointer-events: none;
+}
+
+@keyframes mdRippleAnim {
+  to {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+/* Mobile-First Android Shell */
+.android-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--md-surface);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 520px) {
+  body {
+    padding: 16px 0;
+  }
+  .android-shell {
+    min-height: calc(100dvh - 32px);
+    border-radius: 28px;
+    border: 1px solid var(--md-outline-variant);
+    box-shadow: var(--elev-3);
+    overflow-x: clip;
+  }
+}
+
+/* ==========================================================================
+   ANDROID TOP APP BAR & NOTIFICATION BADGE
+   ========================================================================== */
+.top-app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding-top: env(safe-area-inset-top);
+  background: var(--md-surface);
+  border-bottom: 1px solid var(--md-outline-variant);
+  transition: background-color 0.25s ease;
+}
+
+.top-bar-inner {
+  height: 60px;
+  padding: 0 12px 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.app-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.brand-emblem {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.brand-emblem svg {
+  width: 18px;
+  height: 18px;
+}
+
+.app-bar-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.md-icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  border: none;
+  background: transparent;
+  color: var(--md-on-surface-variant);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+
+.md-icon-btn:hover {
+  background: var(--md-surface-container);
+  color: var(--md-on-surface);
+}
+
+.md-icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.md-icon-btn.compact {
+  width: 38px;
+  height: 38px;
+}
+
+.md-icon-btn.compact svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Notification Dot Badge */
+.notif-badge {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 99px;
+  background: var(--md-expense);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--md-surface);
+  line-height: 1;
+}
+
+.notif-badge.active {
+  display: flex;
+}
+
+/* ==========================================================================
+   VIEWS & SMOOTH TRANSITIONS
+   ========================================================================== */
+main {
+  flex: 1;
+  padding: 16px 16px 24px;
+}
+
+.view-section {
+  display: none;
+  animation: mdFadeSlide 0.24s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.view-section.active {
+  display: block;
+}
+
+@keyframes mdFadeSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.m3-card {
+  background: var(--md-surface-container-lowest);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: var(--elev-1);
+  margin-bottom: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.m3-card-tonal {
+  background: var(--md-surface-container-low);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0 10px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--md-on-surface);
+}
+
+.text-action-btn {
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 18px;
+  border: none;
+  background: transparent;
+  color: var(--md-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.text-action-btn:hover {
+  background: var(--md-surface-container);
+}
+
+.text-action-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ==========================================================================
+   ALERT BANNER & NOTIFICATION ITEMS
+   ========================================================================== */
+.alert-banner {
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  animation: mdFadeSlide 0.25s ease;
+}
+
+.alert-banner.warn {
+  background: var(--md-warning-container);
+  color: var(--md-warning);
+  border-color: rgba(176, 101, 8, 0.25);
+}
+
+.alert-banner.danger {
+  background: var(--md-expense-container);
+  color: var(--md-expense);
+  border-color: rgba(198, 54, 54, 0.25);
+}
+
+.alert-banner svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 16px;
+  background: var(--md-surface-container-low);
+  border: 1px solid var(--md-outline-variant);
+  margin-bottom: 10px;
+}
+
+.notif-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.notif-icon.danger {
+  background: var(--md-expense-container);
+  color: var(--md-expense);
+}
+
+.notif-icon.warn {
+  background: var(--md-warning-container);
+  color: var(--md-warning);
+}
+
+.notif-icon.info {
+  background: var(--md-secondary-container);
+  color: var(--md-primary);
+}
+
+.notif-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ==========================================================================
+   HERO BALANCE CARD & PERIOD SELECTOR
+   ========================================================================== */
+.hero-card {
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+  border-radius: 24px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--elev-2);
+  margin-bottom: 14px;
+}
+
+.hero-card::before {
+  content: "";
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  opacity: 0.08;
+  right: -85px;
+  top: -100px;
+  pointer-events: none;
+}
+
+.hero-card::after {
+  content: "";
+  position: absolute;
+  width: 145px;
+  height: 145px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  opacity: 0.06;
+  right: -45px;
+  top: -60px;
+  pointer-events: none;
+}
+
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-label {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.period-stepper {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(128, 128, 128, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  padding: 2px;
+}
+
+.stepper-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  display: grid;
+  place-items: center;
+}
+
+.stepper-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.stepper-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.stepper-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  height: 28px;
+}
+
+.hero-balance {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin: 12px 0 18px;
+  position: relative;
+  z-index: 1;
+  overflow-wrap: anywhere;
+}
+
+.hero-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(128, 128, 128, 0.25);
+  position: relative;
+  z-index: 1;
+}
+
+.hero-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hero-stat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: rgba(128, 128, 128, 0.22);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.hero-stat-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.hero-stat-title {
+  font-size: 11px;
+  opacity: 0.8;
+  display: block;
+}
+
+.hero-stat-val {
+  font-size: 13.5px;
+  font-weight: 700;
+  display: block;
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   WALLET ACCOUNTS STRIP
+   ========================================================================== */
+.wallet-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+}
+
+.wallet-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.wallet-pill-card {
+  min-width: 135px;
+  background: var(--md-surface-container-lowest);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 16px;
+  padding: 12px 14px;
+  flex-shrink: 0;
+  box-shadow: var(--elev-1);
+}
+
+.wallet-pill-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--md-on-surface-variant);
+}
+
+.wallet-pill-top svg {
+  width: 14px;
+  height: 14px;
+  color: var(--md-primary);
+}
+
+.wallet-pill-bal {
+  font-size: 15px;
+  font-weight: 800;
+  margin-top: 6px;
+  letter-spacing: -0.3px;
+}
+
+/* ==========================================================================
+   KPI CARDS, BUDGET STRIP & QUICK CHIPS
+   ========================================================================== */
+.kpi-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.kpi-tile {
+  background: var(--md-surface-container-low);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.kpi-tile-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--md-on-surface-variant);
+}
+
+.kpi-tile-val {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+
+.kpi-tile-sub {
+  font-size: 11px;
+  color: var(--md-outline);
+  margin-top: 3px;
+}
+
+.positive { color: var(--md-income); }
+.negative { color: var(--md-expense); }
+
+/* Horizontal Action Chips */
+.chip-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.chip-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.m3-chip {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--md-outline-variant);
+  background: var(--md-surface-container-lowest);
+  color: var(--md-on-surface);
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.m3-chip svg {
+  width: 16px;
+  height: 16px;
+  color: var(--md-primary);
+}
+
+.m3-chip.selected {
+  background: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+  border-color: var(--md-primary);
+}
+
+/* Progress Bar */
+.m3-progress-track {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--md-surface-container-high);
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.m3-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 99px;
+  background: var(--md-primary);
+  transition: width 0.3s cubic-bezier(0.2, 0, 0, 1), background-color 0.25s ease;
+}
+
+.m3-progress-fill.warn { background: var(--md-warning); }
+.m3-progress-fill.over { background: var(--md-expense); }
+
+/* ==========================================================================
+   TRANSACTION LIST & DATE GROUPING
+   ========================================================================== */
+.date-group-header {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--md-outline);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 16px 0 8px 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tx-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  min-height: 64px;
+  background: var(--md-surface-container-lowest);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 16px;
+  box-shadow: var(--elev-1);
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.12s ease;
+}
+
+.tx-card:active {
+  transform: scale(0.99);
+}
+
+.tx-card:hover {
+  background: var(--md-surface-container-low);
+}
+
+.tx-leading {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: var(--md-surface-container);
+  color: var(--md-on-surface);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.tx-leading svg {
+  width: 19px;
+  height: 19px;
+}
+
+.tx-center {
+  flex: 1;
+  min-width: 0;
+}
+
+.tx-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--md-on-surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tx-sub {
+  font-size: 11.5px;
+  color: var(--md-on-surface-variant);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tx-tag {
+  background: var(--md-surface-container);
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.tx-wallet-badge {
+  background: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.tx-trailing {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.tx-val {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tx-date-tiny {
+  font-size: 10.5px;
+  color: var(--md-outline);
+  margin-top: 2px;
+}
+
+/* Empty State */
+.empty-box {
+  padding: 36px 20px;
+  text-align: center;
+  background: var(--md-surface-container-low);
+  border: 1px dashed var(--md-outline-variant);
+  border-radius: 18px;
+}
+
+.empty-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background: var(--md-surface-container-high);
+  color: var(--md-on-surface-variant);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 12px;
+}
+
+.empty-circle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.empty-box h3 {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.empty-box p {
+  font-size: 12px;
+  color: var(--md-on-surface-variant);
+  margin-top: 4px;
+  max-width: 270px;
+  margin-inline: auto;
+}
+
+/* ==========================================================================
+   FORMS & INPUTS (48PX TOUCH TARGETS)
+   ========================================================================== */
+.m3-search-bar {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.m3-search-bar svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--md-on-surface-variant);
+  pointer-events: none;
+}
+
+.m3-input, .m3-select, .m3-textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--md-outline-variant);
+  background: var(--md-surface-container-lowest);
+  color: var(--md-on-surface);
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.m3-textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.m3-search-bar .m3-input {
+  padding-left: 42px;
+  border-radius: 24px;
+  background: var(--md-surface-container-low);
+}
+
+.m3-input:focus, .m3-select:focus, .m3-textarea:focus {
+  border-color: var(--md-primary);
+  border-width: 1.5px;
+}
+
+.field-block {
+  margin-bottom: 14px;
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--md-on-surface-variant);
+  margin-bottom: 6px;
+}
+
+/* Material Buttons */
+.m3-btn-filled {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 24px;
+  border: none;
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+  font-size: 13.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.15s ease;
+}
+
+.m3-btn-filled:hover { opacity: 0.92; }
+
+.m3-btn-tonal {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 24px;
+  border: 1px solid var(--md-outline-variant);
+  background: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+  font-size: 13.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.m3-btn-outlined {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 24px;
+  border: 1px solid var(--md-outline-variant);
+  background: transparent;
+  color: var(--md-on-surface);
+  font-size: 13.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.m3-btn-danger {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 24px;
+  border: none;
+  background: var(--md-expense);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.m3-btn-filled svg, .m3-btn-tonal svg, .m3-btn-outlined svg, .m3-btn-danger svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ==========================================================================
+   ANDROID FLOATING ACTION BUTTON (FAB) & BOTTOM NAVIGATION BAR
+   ========================================================================== */
+.android-fab {
+  position: fixed;
+  right: max(16px, calc(50vw - 224px));
+  bottom: calc(92px + env(safe-area-inset-bottom));
+  z-index: 35;
+  height: 56px;
+  padding: 0 20px;
+  border-radius: 16px;
+  border: none;
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+  box-shadow: var(--elev-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.android-fab:active {
+  transform: scale(0.96);
+}
+
+.android-fab svg {
+  width: 22px;
+  height: 22px;
+}
+
+.android-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  height: calc(76px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--md-surface-container-low);
+  border-top: 1px solid var(--md-outline-variant);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 30;
+}
+
+@media (min-width: 520px) {
+  .android-bottom-nav {
+    bottom: 16px;
+    border-radius: 0 0 28px 28px;
+  }
+  .android-fab {
+    bottom: 104px;
+  }
+}
+
+.nav-dest {
+  border: none;
+  background: transparent;
+  color: var(--md-on-surface-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 0;
+}
+
+.nav-pill {
+  width: 60px;
+  height: 30px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.nav-pill svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.85;
+}
+
+.nav-dest.active .nav-pill {
+  background: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+}
+
+.nav-dest.active .nav-pill svg {
+  stroke-width: 2.3;
+}
+
+.nav-label {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.nav-dest.active .nav-label {
+  color: var(--md-on-surface);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   ANDROID MODAL BOTTOM SHEETS & DRAG HANDLE
+   ========================================================================== */
+.sheet-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 60;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sheet-scrim.open {
+  display: flex;
+  animation: scrimFade 0.2s ease;
+}
+
+@keyframes scrimFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.bottom-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: var(--md-surface-container-lowest);
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
+  box-shadow: var(--elev-3);
+  animation: sheetSlideUp 0.24s cubic-bezier(0.2, 0, 0, 1);
+  touch-action: pan-y;
+}
+
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet-drag-zone {
+  padding: 6px 0 14px;
+  display: flex;
+  justify-content: center;
+  cursor: grab;
+}
+
+.sheet-handle {
+  width: 34px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--md-outline-variant);
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sheet-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+/* Segmented Button Row (Material 3) */
+.m3-segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.seg-option {
+  min-height: 42px;
+  border: none;
+  background: transparent;
+  color: var(--md-on-surface-variant);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.seg-option + .seg-option {
+  border-left: 1px solid var(--md-outline-variant);
+}
+
+.seg-option.active.income {
+  background: var(--md-income-container);
+  color: var(--md-income);
+}
+
+.seg-option.active.expense {
+  background: var(--md-expense-container);
+  color: var(--md-expense);
+}
+
+.seg-option svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ==========================================================================
+   ICON PICKER, ACCENT SWATCHES, SWITCHES & ANALYTICS BARS
+   ========================================================================== */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.icon-tile {
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid var(--md-outline-variant);
+  background: var(--md-surface-container-low);
+  color: var(--md-on-surface-variant);
+  display: grid;
+  place-items: center;
+}
+
+.icon-tile.selected {
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+  border-color: var(--md-primary);
+}
+
+.icon-tile svg {
+  width: 19px;
+  height: 19px;
+}
+
+.accent-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.accent-option {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--md-outline-variant);
+  background: var(--md-surface-container-low);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.accent-option.selected {
+  border-color: var(--md-primary);
+  background: var(--md-secondary-container);
+}
+
+.accent-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* Material 3 Switch */
+.m3-switch {
+  width: 50px;
+  height: 30px;
+  appearance: none;
+  border-radius: 15px;
+  background: var(--md-surface-container-highest);
+  border: 1.5px solid var(--md-outline);
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.m3-switch:checked {
+  background: var(--md-primary);
+  border-color: var(--md-primary);
+}
+
+.m3-switch::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--md-outline);
+  top: 5.5px;
+  left: 5.5px;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease;
+}
+
+.m3-switch:checked::before {
+  transform: translateX(20px);
+  width: 20px;
+  height: 20px;
+  top: 3.5px;
+  left: 3.5px;
+  background: var(--md-on-primary);
+}
+
+/* Analytics Horizontal Bars */
+.dist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.dist-name {
+  width: 96px;
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dist-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--md-surface-container-high);
+  overflow: hidden;
+}
+
+.dist-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--md-primary);
+}
+
+.dist-val {
+  width: 94px;
+  text-align: right;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   ANDROID PIN SECURITY LOCK OVERLAY
+   ========================================================================== */
+.pin-lock-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--md-surface);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.pin-lock-screen.active {
+  display: flex;
+}
+
+.pin-dots {
+  display: flex;
+  gap: 14px;
+  margin: 22px 0 28px;
+}
+
+.pin-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  border: 2px solid var(--md-outline);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.pin-dot.filled {
+  background: var(--md-primary);
+  border-color: var(--md-primary);
+}
+
+.pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 14px;
+}
+
+.pin-key {
+  width: 72px;
+  height: 72px;
+  border-radius: 36px;
+  border: 1px solid var(--md-outline-variant);
+  background: var(--md-surface-container-low);
+  font-size: 22px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.pin-key:active {
+  background: var(--md-secondary-container);
+}
+
+.pin-key svg {
+  width: 24px;
+  height: 24px;
+}
+
+.forgot-pin-btn {
+  margin-top: 22px;
+  background: transparent;
+  border: none;
+  color: var(--md-primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  padding: 8px 16px;
+}
+
+/* ==========================================================================
+   ANDROID SNACKBAR / TOAST
+   ========================================================================== */
+.md-snackbar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(90px + env(safe-area-inset-bottom));
+  z-index: 90;
+  background: var(--md-on-surface);
+  color: var(--md-surface);
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  box-shadow: var(--elev-3);
+  display: none;
+  max-width: calc(100vw - 32px);
+  width: max-content;
+}
+
+@media (min-width: 520px) {
+  .md-snackbar {
+    bottom: 102px;
+  }
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sub-note {
+  font-size: 11.5px;
+  color: var(--md-on-surface-variant);
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   PRINT / PDF SUMMARY STYLES
+   ========================================================================== */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+  }
+  .android-shell {
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding-bottom: 0 !important;
+  }
+  .top-app-bar, .android-bottom-nav, .android-fab, .chip-strip, .m3-search-bar, #pinLockScreen, .sheet-scrim {
+    display: none !important;
+  }
+  .view-section {
+    display: block !important;
+    margin-bottom: 24px;
+  }
+  #view-more, #view-categories, #view-recurring, #view-wallets {
+    display: none !important;
+  }
+}
+</style>
+</head>
+
+<body data-accent="obsidian">
+
+<!-- ========================================================================
+     4-DIGIT PIN SECURITY LOCK SCREEN
+     ======================================================================== -->
+<div class="pin-lock-screen" id="pinLockScreen" role="dialog" aria-modal="true" aria-label="Security Passcode">
+  <div class="brand-emblem" style="width:48px;height:48px;border-radius:14px;margin-bottom:14px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px">
+      <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  </div>
+  <h2 style="font-size:19px;font-weight:700" id="pinPromptTitle">Enter Passcode</h2>
+  <p class="sub-note" id="pinPromptSub" style="margin-top:4px;text-align:center">Unlock Asbily Financial Ledger</p>
+
+  <div class="pin-dots" id="pinDotsContainer">
+    <span class="pin-dot"></span>
+    <span class="pin-dot"></span>
+    <span class="pin-dot"></span>
+    <span class="pin-dot"></span>
+  </div>
+
+  <div class="pin-keypad">
+    <button type="button" class="pin-key ripple-host" onclick="pressPinDigit('1')">1</button>
+    <button type="button" class="pin-key ripple-host" onclick="pressPinDigit('2')">2</button>
+    <button type="button" class="pin-key ripple-host" onclick="pressPinDigit('3')">3</button>
+    <button type="button" class="pin-key ripple-host" onclick="pressPinDigit('4')">4</button>
+    <button type="button" class="pin-key ripple-host" onclick="pressPinDigit('5')">5</button>
+    <button type="button" class="pin-key ripple-host" onclick="pressPinDigit('6')">6</button>
+    <button type="button" class="pin-key ripple-host" onclick="pressPinDigit('7')">7</button>
+    <button type="button" class="pin-key ripple-host" onclick="pressPinDigit('8')">8</button>
+    <button type="button" class="pin-key ripple-host" onclick="pressPinDigit('9')">9</button>
+
+    <button type="button" class="pin-key ripple-host" id="pinLeftActionKey" style="visibility:hidden"> </button>
+
+    <button type="button" class="pin-key ripple-host" onclick="pressPinDigit('0')">0</button>
+
+    <button type="button" class="pin-key ripple-host" onclick="backspacePin()" aria-label="Backspace">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/>
+      </svg>
+    </button>
+  </div>
+
+  <button type="button" class="forgot-pin-btn" id="forgotPinBtn" onclick="openPinRecoverySheet()">Forgot PIN?</button>
+</div>
+
+<!-- ========================================================================
+     ANDROID MOBILE APP SHELL
+     ======================================================================== -->
+<div class="android-shell">
+
+  <!-- TOP APP BAR -->
+  <header class="top-app-bar">
+    <div class="top-bar-inner">
+      <div class="app-bar-left">
+        <button class="md-icon-btn compact ripple-host" id="topBackBtn" style="display:none" onclick="handleBackStep()" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+        </button>
+        <div class="brand-emblem" id="topBrandLogo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19V5l8 10 8-10v14"/>
+          </svg>
+        </div>
+        <span class="app-bar-title" id="topAppBarTitle">Asbily</span>
+      </div>
+
+      <div class="app-bar-actions">
+        <!-- Notification Bell Button -->
+        <button class="md-icon-btn ripple-host" onclick="openNotificationsSheet()" aria-label="Notifications" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="notif-badge num" id="topNotifBadge">0</span>
+        </button>
+
+        <!-- Quick Lock Button (Shown when PIN is active) -->
+        <button class="md-icon-btn ripple-host" id="topQuickLockBtn" style="display:none" onclick="lockAppNow()" aria-label="Lock App Now" title="Lock App">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </button>
+
+        <!-- Search Button -->
+        <button class="md-icon-btn ripple-host" onclick="openSearchActivity()" aria-label="Search Ledger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ====================================================================
+         VIEW 1: HOME (EXECUTIVE OVERVIEW)
+         ==================================================================== -->
+    <section class="view-section active" id="view-home">
+
+      <!-- Smart Budget Warning Banner -->
+      <div id="homeSmartAlertBanner" style="display:none"></div>
+
+      <!-- Hero Net Balance Card with Month/All-Time Period Stepper -->
+      <div class="hero-card">
+        <div class="hero-top">
+          <span class="hero-label" id="heroBalanceTitle">Period Net Cash Flow</span>
+          <div class="period-stepper">
+            <button type="button" class="stepper-btn" onclick="stepHomePeriod(-1)" aria-label="Previous Month">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+            <button type="button" class="stepper-label num" id="heroPeriodLabel" onclick="toggleHomeAllTime()">Nov 2026</button>
+            <button type="button" class="stepper-btn" onclick="stepHomePeriod(1)" aria-label="Next Month">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-balance num" id="heroNetAmount">৳0.00</div>
+
+        <div class="hero-split">
+          <div class="hero-stat">
+            <div class="hero-stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+              </svg>
+            </div>
+            <div style="min-width:0">
+              <span class="hero-stat-title">Income</span>
+              <span class="hero-stat-val num" id="heroIncomeAmount">৳0.00</span>
+            </div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 7 17 17 7 17"/>
+              </svg>
+            </div>
+            <div style="min-width:0">
+              <span class="hero-stat-title">Expenses</span>
+              <span class="hero-stat-val num" id="heroExpenseAmount">৳0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Multiple Accounts / Wallets Strip -->
+      <div class="section-header" style="margin-top:8px">
+        <h2 class="section-title">Accounts & Wallets</h2>
+        <button type="button" class="text-action-btn" onclick="switchView('wallets')">Manage</button>
+      </div>
+      <div class="wallet-strip" id="homeWalletStrip"></div>
+
+      <!-- KPI Tiles -->
+      <div class="kpi-row">
+        <div class="kpi-tile">
+          <div class="kpi-tile-label">All-Time Net Worth</div>
+          <div class="kpi-tile-val num" id="kpiAllTimeNet">৳0.00</div>
+          <div class="kpi-tile-sub num" id="kpiEntryCount">0 total entries</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-tile-label">Savings Rate</div>
+          <div class="kpi-tile-val num" id="kpiSavingsRate">0.0%</div>
+          <div class="kpi-tile-sub" id="kpiSavingsSub">Selected period</div>
+        </div>
+      </div>
+
+      <!-- Monthly Budget Health Strip -->
+      <div class="m3-card-tonal" style="padding:14px 16px">
+        <div class="flex-between">
+          <span style="font-size:12.5px;font-weight:700">Monthly Budget Health</span>
+          <span class="num" style="font-size:12px;font-weight:700" id="homeBudgetRatio">Uncapped</span>
+        </div>
+        <div class="m3-progress-track">
+          <div class="m3-progress-fill" id="homeBudgetBar"></div>
+        </div>
+        <div class="flex-between">
+          <span class="sub-note" id="homeBudgetDaily">Set a monthly ceiling in Budget</span>
+          <button type="button" class="text-action-btn" style="min-height:28px;padding:0 6px" onclick="switchView('budget')">Configure</button>
+        </div>
+      </div>
+
+      <!-- Due Recurring Alert Banner -->
+      <div id="dueRecurringBanner" style="display:none" class="m3-card">
+        <div class="flex-between">
+          <div>
+            <div style="font-size:13px;font-weight:700" id="dueRecurringTitle">Scheduled Entries Due</div>
+            <div class="sub-note" id="dueRecurringDesc">Ready to post to your ledger.</div>
+          </div>
+          <button type="button" class="m3-btn-tonal ripple-host" style="min-height:38px;padding:0 14px;font-size:12px" onclick="postAllDueRecurring()">Post Now</button>
+        </div>
+      </div>
+
+      <!-- Quick Action Chips -->
+      <div class="section-header" style="margin-top:14px">
+        <h2 class="section-title">Quick Actions</h2>
+      </div>
+      <div class="chip-strip">
+        <button type="button" class="m3-chip ripple-host" onclick="openTxSheet('income')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Income
+        </button>
+        <button type="button" class="m3-chip ripple-host" onclick="openTxSheet('expense')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Expense
+        </button>
+        <button type="button" class="m3-chip ripple-host" onclick="switchView('analytics')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Cash Flow
+        </button>
+        <button type="button" class="m3-chip ripple-host" onclick="switchView('recurring')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Recurring
+        </button>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="section-header">
+        <h2 class="section-title">Recent Activity</h2>
+        <button type="button" class="text-action-btn ripple-host" onclick="switchView('activity')">
+          See All
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div class="tx-list" id="homeRecentList"></div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 2: ACTIVITY (DATE-GROUPED LEDGER & FILTER CHIPS)
+         ==================================================================== -->
+    <section class="view-section" id="view-activity">
+      <div class="chip-strip" style="margin-bottom:12px">
+        <button type="button" class="m3-chip ripple-host" onclick="openTxSheet('income')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Income
+        </button>
+        <button type="button" class="m3-chip ripple-host" onclick="openTxSheet('expense')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Expense
+        </button>
+      </div>
+
+      <div class="m3-search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="m3-input" id="ledgerSearchInput" placeholder="Search title, category, wallet, or note..." oninput="renderActivity()">
+      </div>
+
+      <!-- Horizontal Filter Chips -->
+      <div class="chip-strip" style="margin-bottom:8px" id="activityFilterChips">
+        <button type="button" class="m3-chip selected" data-type="all" onclick="setActivityTypeFilter('all')">All</button>
+        <button type="button" class="m3-chip" data-type="income" onclick="setActivityTypeFilter('income')">Income</button>
+        <button type="button" class="m3-chip" data-type="expense" onclick="setActivityTypeFilter('expense')">Expense</button>
+        <button type="button" class="m3-chip" data-period="today" onclick="toggleActivityPeriodChip('today')">Today</button>
+        <button type="button" class="m3-chip" data-period="month" onclick="toggleActivityPeriodChip('month')">This Month</button>
+        <button type="button" class="m3-chip" data-period="year" onclick="toggleActivityPeriodChip('year')">This Year</button>
+      </div>
+
+      <!-- Wallet Filter Strip -->
+      <div class="chip-strip" style="margin-bottom:10px" id="activityWalletFilterChips"></div>
+
+      <div class="flex-between" style="margin-bottom:6px">
+        <span class="sub-note num" id="activityResultCount">0 entries</span>
+        <select class="m3-select" id="activitySortSelect" style="width:auto;min-height:36px;padding:4px 10px;font-size:12px;border-radius:10px" onchange="renderActivity()">
+          <option value="newest">Newest First</option>
+          <option value="highest">Highest Amount</option>
+          <option value="lowest">Lowest Amount</option>
+        </select>
+      </div>
+
+      <div id="activityGroupedContainer"></div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 3: ANALYTICS (INTERACTIVE SVG CASH-FLOW & BREAKDOWN)
+         ==================================================================== -->
+    <section class="view-section" id="view-analytics">
+      <div class="kpi-row">
+        <div class="kpi-tile">
+          <div class="kpi-tile-label">Daily Avg Spend (30d)</div>
+          <div class="kpi-tile-val num" id="anaDailyAvg">৳0.00</div>
+          <div class="kpi-tile-sub">Rolling 30 days</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-tile-label">Top Expense Category</div>
+          <div class="kpi-tile-val" style="font-size:15px;margin-top:8px" id="anaTopCat">None</div>
+          <div class="kpi-tile-sub num" id="anaTopCatVal">৳0.00</div>
+        </div>
+      </div>
+
+      <!-- Interactive 6-Month Grouped Bar Chart -->
+      <div class="m3-card">
+        <div class="flex-between" style="margin-bottom:8px">
+          <div>
+            <div style="font-size:14px;font-weight:700">6-Month Cash Flow</div>
+            <div class="sub-note" id="chartSelectedReadout">Tap any month bar to inspect exact figures</div>
+          </div>
+          <div style="display:flex;gap:10px;font-size:11px;font-weight:600">
+            <span style="display:inline-flex;align-items:center;gap:4px"><i style="width:8px;height:8px;border-radius:2px;background:var(--md-income);display:inline-block"></i>In</span>
+            <span style="display:inline-flex;align-items:center;gap:4px"><i style="width:8px;height:8px;border-radius:2px;background:var(--md-primary);display:inline-block"></i>Out</span>
+          </div>
+        </div>
+        <div id="interactiveSvgChart"></div>
+      </div>
+
+      <!-- Category Spending Distribution -->
+      <div class="section-header">
+        <h2 class="section-title">Expense Breakdown</h2>
+        <span class="sub-note num" id="anaTotalOutflow">৳0.00</span>
+      </div>
+      <div class="m3-card" id="anaCategoryBreakdown"></div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 4: BUDGET PLANNING (OVERALL + CATEGORY CAPS)
+         ==================================================================== -->
+    <section class="view-section" id="view-budget">
+      <div class="m3-card">
+        <div class="field-block">
+          <label class="field-label" for="budgetOverallInput">Monthly Spending Limit (<span id="budgetCurrencyCode">BDT</span>)</label>
+          <div style="display:flex;gap:8px">
+            <input class="m3-input num" id="budgetOverallInput" type="number" min="0" step="0.01" placeholder="Enter monthly cap">
+            <button type="button" class="m3-btn-filled ripple-host" onclick="saveOverallBudget()">Save</button>
+          </div>
+        </div>
+
+        <div class="flex-between" style="margin-top:14px">
+          <span class="sub-note">Spent This Month</span>
+          <strong class="num" id="budgetMonthSpent">৳0.00</strong>
+        </div>
+        <div class="m3-progress-track">
+          <div class="m3-progress-fill" id="budgetMainBar"></div>
+        </div>
+        <div class="flex-between">
+          <span class="sub-note">Remaining Allowance</span>
+          <strong class="num" id="budgetMonthLeft">৳0.00</strong>
+        </div>
+        <div class="flex-between" style="margin-top:6px">
+          <span class="sub-note">Safe Daily Allowance</span>
+          <strong class="num" id="budgetDailySafe">৳0.00 / day</strong>
+        </div>
+        <p class="sub-note" id="budgetAlertNote" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--md-outline-variant)"></p>
+      </div>
+
+      <div class="section-header">
+        <h2 class="section-title">Category Monthly Caps</h2>
+        <span class="sub-note num" id="budgetCatSumLabel">Allocated: ৳0.00</span>
+      </div>
+      <div id="budgetCategoryList"></div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 5: MORE & SETTINGS
+         ==================================================================== -->
+    <section class="view-section" id="view-more">
+      <div class="section-header" style="margin-top:4px">
+        <h2 class="section-title">Financial Management</h2>
+      </div>
+      <div class="m3-card" style="padding:6px 14px">
+        <div class="tx-card ripple-host" style="border:none;box-shadow:none;padding:10px 4px" onclick="switchView('wallets')">
+          <div class="tx-leading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+          </div>
+          <div class="tx-center">
+            <div class="tx-name">Accounts & Wallets</div>
+            <div class="tx-sub" id="moreWalletsSub">Cash, Bank, bKash/Nagad accounts</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+
+        <div style="height:1px;background:var(--md-outline-variant)"></div>
+
+        <div class="tx-card ripple-host" style="border:none;box-shadow:none;padding:10px 4px" onclick="switchView('categories')">
+          <div class="tx-leading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          </div>
+          <div class="tx-center">
+            <div class="tx-name">Categories & Icons</div>
+            <div class="tx-sub">Manage income & expense classifications</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+
+        <div style="height:1px;background:var(--md-outline-variant)"></div>
+
+        <div class="tx-card ripple-host" style="border:none;box-shadow:none;padding:10px 4px" onclick="switchView('recurring')">
+          <div class="tx-leading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </div>
+          <div class="tx-center">
+            <div class="tx-name">Recurring Transactions</div>
+            <div class="tx-sub" id="moreRecurringSub">Automated monthly & weekly schedules</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2 class="section-title">Appearance & Material You</h2>
+      </div>
+      <div class="m3-card">
+        <div class="flex-between" style="padding-bottom:14px;border-bottom:1px solid var(--md-outline-variant)">
+          <div>
+            <div style="font-size:13.5px;font-weight:600">Dark Theme</div>
+            <div class="sub-note">AMOLED-friendly dark surfaces</div>
+          </div>
+          <input type="checkbox" class="m3-switch" id="settingDarkSwitch" onchange="setTheme(this.checked)">
+        </div>
+
+        <div style="padding-top:14px">
+          <div style="font-size:13.5px;font-weight:600">Dynamic Accent Color</div>
+          <div class="sub-note">Personalize Material 3 containers & controls</div>
+          <div class="accent-grid" id="accentPickerGrid">
+            <button type="button" class="accent-option ripple-host" data-accent="obsidian" onclick="setAccent('obsidian')">
+              <span class="accent-dot" style="background:#14171f"></span>Obsidian
+            </button>
+            <button type="button" class="accent-option ripple-host" data-accent="emerald" onclick="setAccent('emerald')">
+              <span class="accent-dot" style="background:#0b6b46"></span>Emerald
+            </button>
+            <button type="button" class="accent-option ripple-host" data-accent="cobalt" onclick="setAccent('cobalt')">
+              <span class="accent-dot" style="background:#1b56b3"></span>Cobalt
+            </button>
+            <button type="button" class="accent-option ripple-host" data-accent="teal" onclick="setAccent('teal')">
+              <span class="accent-dot" style="background:#0c6873"></span>Deep Teal
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2 class="section-title">Security & Passcode</h2>
+      </div>
+      <div class="m3-card">
+        <div class="flex-between" style="padding-bottom:14px;border-bottom:1px solid var(--md-outline-variant)">
+          <div>
+            <div style="font-size:13.5px;font-weight:600">4-Digit App PIN Lock</div>
+            <div class="sub-note" id="pinStatusSub">Protect local financial records</div>
+          </div>
+          <input type="checkbox" class="m3-switch" id="settingPinSwitch" onchange="togglePinLockSetting(this.checked)">
+        </div>
+
+        <!-- Auto-Lock Timeout (Shown when PIN is active) -->
+        <div id="autoLockSettingRow" style="display:none;padding-top:14px">
+          <div class="flex-between">
+            <div>
+              <div style="font-size:13.5px;font-weight:600">Auto-Lock Inactivity</div>
+              <div class="sub-note">Lock automatically when idle</div>
+            </div>
+            <select class="m3-select" id="settingAutoLockSelect" style="width:124px;min-height:42px" onchange="changeAutoLock()">
+              <option value="0">Never</option>
+              <option value="1">1 Minute</option>
+              <option value="3">3 Minutes</option>
+              <option value="5">5 Minutes</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2 class="section-title">Localization & Formatting</h2>
+      </div>
+      <div class="m3-card">
+        <div class="flex-between" style="padding-bottom:14px;border-bottom:1px solid var(--md-outline-variant)">
+          <div>
+            <div style="font-size:13.5px;font-weight:600">Display Currency</div>
+            <div class="sub-note">Formatting symbol across ledger</div>
+          </div>
+          <select class="m3-select" id="settingCurrencySelect" style="width:124px;min-height:42px" onchange="changeCurrency()">
+            <option value="BDT">BDT (৳)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="INR">INR (₹)</option>
+          </select>
+        </div>
+
+        <div class="flex-between" style="padding-top:14px">
+          <div>
+            <div style="font-size:13.5px;font-weight:600">Number Grouping Format</div>
+            <div class="sub-note">South Asian (1,50,000) vs International</div>
+          </div>
+          <select class="m3-select" id="settingNumFormatSelect" style="width:136px;min-height:42px" onchange="changeNumFormat()">
+            <option value="bn">South Asian</option>
+            <option value="en">International</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2 class="section-title">Reports, Data & Backup</h2>
+      </div>
+      <div class="m3-card">
+        <button type="button" class="m3-btn-filled ripple-host" style="width:100%;margin-bottom:10px" onclick="exportPDFSummary()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Export PDF Financial Summary
+        </button>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <button type="button" class="m3-btn-tonal ripple-host" onclick="exportCSV()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <button type="button" class="m3-btn-tonal ripple-host" onclick="exportJSONBackup()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+            Backup JSON
+          </button>
+        </div>
+        <button type="button" class="m3-btn-outlined ripple-host" style="width:100%;margin-bottom:10px" onclick="document.getElementById('restoreJsonInput').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Restore From JSON Backup
+        </button>
+        <input type="file" id="restoreJsonInput" accept=".json,application/json" hidden onchange="importJSONBackup(event)">
+
+        <button type="button" class="m3-btn-danger ripple-host" style="width:100%" onclick="confirmWipeAll()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Wipe All Local Data
+        </button>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SUB-VIEW A: CATEGORIES MANAGER
+         ==================================================================== -->
+    <section class="view-section" id="view-categories">
+      <div class="flex-between" style="margin-bottom:12px">
+        <p class="sub-note">Tap a category to edit icon or rename.</p>
+        <button type="button" class="m3-btn-filled ripple-host" style="min-height:40px;padding:0 16px;font-size:12.5px" onclick="openCategorySheet('expense')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Category
+        </button>
+      </div>
+
+      <div class="section-header">
+        <h2 class="section-title">Income Categories</h2>
+        <button type="button" class="text-action-btn" onclick="openCategorySheet('income')">+ Income</button>
+      </div>
+      <div class="m3-card" id="catIncomeList"></div>
+
+      <div class="section-header">
+        <h2 class="section-title">Expense Categories</h2>
+        <button type="button" class="text-action-btn" onclick="openCategorySheet('expense')">+ Expense</button>
+      </div>
+      <div class="m3-card" id="catExpenseList"></div>
+    </section>
+
+    <!-- ====================================================================
+         SUB-VIEW B: RECURRING TRANSACTIONS MANAGER
+         ==================================================================== -->
+    <section class="view-section" id="view-recurring">
+      <div class="flex-between" style="margin-bottom:14px">
+        <p class="sub-note">Automate recurring bills, rent, or salary.</p>
+        <button type="button" class="m3-btn-filled ripple-host" style="min-height:40px;padding:0 16px;font-size:12.5px" onclick="openRecurringSheet()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Schedule
+        </button>
+      </div>
+      <div class="tx-list" id="recurringScheduleList"></div>
+    </section>
+
+    <!-- ====================================================================
+         SUB-VIEW C: WALLETS & ACCOUNTS MANAGER
+         ==================================================================== -->
+    <section class="view-section" id="view-wallets">
+      <div class="flex-between" style="margin-bottom:14px">
+        <p class="sub-note">Manage Cash, Bank & Mobile Wallets.</p>
+        <button type="button" class="m3-btn-filled ripple-host" style="min-height:40px;padding:0 16px;font-size:12.5px" onclick="openWalletSheet()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Wallet
+        </button>
+      </div>
+      <div class="tx-list" id="walletsManagerList"></div>
+    </section>
+
+  </main>
+
+  <!-- EXTENDED ANDROID FLOATING ACTION BUTTON (FAB) -->
+  <button type="button" class="android-fab ripple-host" id="mainFab" onclick="openTxSheet('expense')" aria-label="New Transaction">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    <span>Record</span>
+  </button>
+
+  <!-- ANDROID 5-DESTINATION BOTTOM NAVIGATION BAR -->
+  <nav class="android-bottom-nav" aria-label="Bottom Navigation">
+    <button type="button" class="nav-dest active ripple-host" data-nav="home" onclick="switchView('home')">
+      <span class="nav-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </span>
+      <span class="nav-label">Home</span>
+    </button>
+
+    <button type="button" class="nav-dest ripple-host" data-nav="activity" onclick="switchView('activity')">
+      <span class="nav-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+      </span>
+      <span class="nav-label">Activity</span>
+    </button>
+
+    <button type="button" class="nav-dest ripple-host" data-nav="analytics" onclick="switchView('analytics')">
+      <span class="nav-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+      </span>
+      <span class="nav-label">Analytics</span>
+    </button>
+
+    <button type="button" class="nav-dest ripple-host" data-nav="budget" onclick="switchView('budget')">
+      <span class="nav-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/>
+        </svg>
+      </span>
+      <span class="nav-label">Budget</span>
+    </button>
+
+    <button type="button" class="nav-dest ripple-host" data-nav="more" onclick="switchView('more')">
+      <span class="nav-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </span>
+      <span class="nav-label">More</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ========================================================================
+     BOTTOM SHEET 1: ADD / EDIT TRANSACTION
+     ======================================================================== -->
+<div class="sheet-scrim" id="txSheetScrim" onclick="onScrimClick(event, 'txSheetScrim')">
+  <div class="bottom-sheet" id="txSheetBody" role="dialog" aria-modal="true" aria-labelledby="txSheetTitle">
+    <div class="sheet-drag-zone" data-sheet="txSheetScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="txSheetTitle">New Transaction</h2>
+      <button type="button" class="md-icon-btn compact" onclick="closeSheet('txSheetScrim')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <form id="txForm" onsubmit="saveTransaction(event)">
+      <div class="m3-segmented">
+        <button type="button" id="segTypeIncome" class="seg-option" onclick="setTxFormType('income')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          Income
+        </button>
+        <button type="button" id="segTypeExpense" class="seg-option active expense" onclick="setTxFormType('expense')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+          Expense
+        </button>
+      </div>
+
+      <div class="field-block">
+        <label class="field-label" for="txAmountField">Amount</label>
+        <input class="m3-input num" id="txAmountField" type="number" min="0.01" step="0.01" required placeholder="0.00" style="font-size:20px;font-weight:700">
+      </div>
+
+      <div class="field-block">
+        <label class="field-label" for="txTitleField">Title / Counterparty</label>
+        <input class="m3-input" id="txTitleField" maxlength="70" required placeholder="e.g., Salary Deposit, Groceries, Internet Bill">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field-block">
+          <label class="field-label" for="txCatField">Category</label>
+          <select class="m3-select" id="txCatField" required></select>
+        </div>
+        <div class="field-block">
+          <label class="field-label" for="txWalletField">Account / Wallet</label>
+          <select class="m3-select" id="txWalletField" required></select>
+        </div>
+      </div>
+
+      <div class="field-block">
+        <label class="field-label" for="txDateField">Date</label>
+        <input class="m3-input" id="txDateField" type="date" required>
+      </div>
+
+      <div class="field-block">
+        <label class="field-label" for="txNoteField">Note (Optional)</label>
+        <textarea class="m3-textarea" id="txNoteField" rows="2" maxlength="250" placeholder="Payment method, invoice number, or memo..."></textarea>
+      </div>
+
+      <button type="submit" class="m3-btn-filled ripple-host" id="txSubmitLabel" style="width:100%;margin-top:4px">Save Transaction</button>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================================================
+     BOTTOM SHEET 2: TRANSACTION DETAIL INSPECTOR
+     ======================================================================== -->
+<div class="sheet-scrim" id="detailSheetScrim" onclick="onScrimClick(event, 'detailSheetScrim')">
+  <div class="bottom-sheet" id="detailSheetBody" role="dialog" aria-modal="true" aria-labelledby="detailSheetTitle">
+    <div class="sheet-drag-zone" data-sheet="detailSheetScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="detailSheetTitle">Transaction Details</h2>
+      <button type="button" class="md-icon-btn compact" onclick="closeSheet('detailSheetScrim')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="detailSheetContent"></div>
+    <div id="detailSheetFooter" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:18px"></div>
+  </div>
+</div>
+
+<!-- ========================================================================
+     BOTTOM SHEET 3: ADD / EDIT CATEGORY
+     ======================================================================== -->
+<div class="sheet-scrim" id="catSheetScrim" onclick="onScrimClick(event, 'catSheetScrim')">
+  <div class="bottom-sheet" id="catSheetBody" role="dialog" aria-modal="true" aria-labelledby="catSheetTitle">
+    <div class="sheet-drag-zone" data-sheet="catSheetScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="catSheetTitle">New Category</h2>
+      <button type="button" class="md-icon-btn compact" onclick="closeSheet('catSheetScrim')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <form id="catForm" onsubmit="saveCategory(event)">
+      <div class="field-block">
+        <label class="field-label" for="catNameField">Category Name</label>
+        <input class="m3-input" id="catNameField" maxlength="36" required placeholder="e.g., Consulting, Utilities, Fuel">
+      </div>
+      <div class="field-block">
+        <label class="field-label">Select Icon</label>
+        <div class="icon-grid" id="catIconGrid"></div>
+      </div>
+      <button type="submit" class="m3-btn-filled ripple-host" id="catSubmitLabel" style="width:100%;margin-top:6px">Save Category</button>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================================================
+     BOTTOM SHEET 4: RECURRING TRANSACTION CREATOR
+     ======================================================================== -->
+<div class="sheet-scrim" id="recSheetScrim" onclick="onScrimClick(event, 'recSheetScrim')">
+  <div class="bottom-sheet" id="recSheetBody" role="dialog" aria-modal="true" aria-labelledby="recSheetTitle">
+    <div class="sheet-drag-zone" data-sheet="recSheetScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="recSheetTitle">New Recurring Schedule</h2>
+      <button type="button" class="md-icon-btn compact" onclick="closeSheet('recSheetScrim')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <form id="recForm" onsubmit="saveRecurring(event)">
+      <div class="m3-segmented">
+        <button type="button" id="recSegIncome" class="seg-option" onclick="setRecFormType('income')">Income</button>
+        <button type="button" id="recSegExpense" class="seg-option active expense" onclick="setRecFormType('expense')">Expense</button>
+      </div>
+
+      <div class="field-block">
+        <label class="field-label" for="recAmountField">Amount</label>
+        <input class="m3-input num" id="recAmountField" type="number" min="0.01" step="0.01" required placeholder="0.00">
+      </div>
+
+      <div class="field-block">
+        <label class="field-label" for="recTitleField">Title</label>
+        <input class="m3-input" id="recTitleField" maxlength="70" required placeholder="e.g., Apartment Rent, Monthly Salary">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field-block">
+          <label class="field-label" for="recCatField">Category</label>
+          <select class="m3-select" id="recCatField" required></select>
+        </div>
+        <div class="field-block">
+          <label class="field-label" for="recWalletField">Wallet</label>
+          <select class="m3-select" id="recWalletField" required></select>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field-block">
+          <label class="field-label" for="recFreqField">Frequency</label>
+          <select class="m3-select" id="recFreqField" required>
+            <option value="monthly">Monthly</option>
+            <option value="weekly">Weekly</option>
+          </select>
+        </div>
+        <div class="field-block">
+          <label class="field-label" for="recNextDateField">Next Due Date</label>
+          <input class="m3-input" id="recNextDateField" type="date" required>
+        </div>
+      </div>
+
+      <button type="submit" class="m3-btn-filled ripple-host" style="width:100%;margin-top:6px">Create Schedule</button>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================================================
+     BOTTOM SHEET 5: ADD WALLET / ACCOUNT
+     ======================================================================== -->
+<div class="sheet-scrim" id="walletSheetScrim" onclick="onScrimClick(event, 'walletSheetScrim')">
+  <div class="bottom-sheet" id="walletSheetBody" role="dialog" aria-modal="true" aria-labelledby="walletSheetTitle">
+    <div class="sheet-drag-zone" data-sheet="walletSheetScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="walletSheetTitle">New Wallet / Account</h2>
+      <button type="button" class="md-icon-btn compact" onclick="closeSheet('walletSheetScrim')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <form id="walletForm" onsubmit="saveWallet(event)">
+      <div class="field-block">
+        <label class="field-label" for="walletNameField">Account Name</label>
+        <input class="m3-input" id="walletNameField" maxlength="28" required placeholder="e.g., Nagad, Dutch-Bangla Bank, Savings">
+      </div>
+      <div class="field-block">
+        <label class="field-label" for="walletIconField">Account Type</label>
+        <select class="m3-select" id="walletIconField">
+          <option value="wallet">Cash / Physical Wallet</option>
+          <option value="briefcase">Bank Account</option>
+          <option value="zap">Mobile Banking (bKash/Nagad)</option>
+          <option value="shield">Savings / Vault</option>
+        </select>
+      </div>
+      <button type="submit" class="m3-btn-filled ripple-host" style="width:100%;margin-top:6px">Add Account</button>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================================================
+     BOTTOM SHEET 6: PIN SECURITY QUESTION SETUP (FORGOT PIN RECOVERY)
+     ======================================================================== -->
+<div class="sheet-scrim" id="pinSetupSecurityScrim" onclick="onScrimClick(event, 'pinSetupSecurityScrim')">
+  <div class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="secSetupTitle">
+    <div class="sheet-drag-zone" data-sheet="pinSetupSecurityScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="secSetupTitle">Set Recovery Question</h2>
+    </div>
+    <p class="sub-note" style="margin-bottom:14px">If you ever forget your 4-digit PIN, this security answer lets you reset it safely without losing your financial records.</p>
+    <form onsubmit="saveSecurityRecovery(event)">
+      <div class="field-block">
+        <label class="field-label" for="secQuestionField">Security Question</label>
+        <select class="m3-select" id="secQuestionField">
+          <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+          <option value="What was the name of your first school?">What was the name of your first school?</option>
+          <option value="What is your favorite city?">What is your favorite city?</option>
+          <option value="What is your childhood nickname?">What is your childhood nickname?</option>
+        </select>
+      </div>
+      <div class="field-block">
+        <label class="field-label" for="secAnswerField">Your Answer</label>
+        <input class="m3-input" id="secAnswerField" required placeholder="Enter memorable answer...">
+      </div>
+      <button type="submit" class="m3-btn-filled ripple-host" style="width:100%">Complete PIN Setup</button>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================================================
+     BOTTOM SHEET 7: FORGOT PIN RECOVERY DIALOG
+     ======================================================================== -->
+<div class="sheet-scrim" id="pinRecoveryScrim" onclick="onScrimClick(event, 'pinRecoveryScrim')">
+  <div class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="recPinTitle">
+    <div class="sheet-drag-zone" data-sheet="pinRecoveryScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="recPinTitle">Recover Forgotten PIN</h2>
+      <button type="button" class="md-icon-btn compact" onclick="closeSheet('pinRecoveryScrim')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div id="recoveryQuestionBox">
+      <p class="sub-note" style="margin-bottom:10px">Answer your security question to unlock and reset your PIN:</p>
+      <div class="m3-card-tonal" style="font-weight:700;font-size:13px;margin-bottom:12px" id="displaySecurityQuestion"></div>
+      <div class="field-block">
+        <input class="m3-input" id="verifySecAnswerInput" placeholder="Enter your answer...">
+      </div>
+      <button type="button" class="m3-btn-filled ripple-host" style="width:100%;margin-bottom:14px" onclick="verifySecurityAnswer()">Verify & Reset PIN</button>
+    </div>
+
+    <div style="border-top:1px solid var(--md-outline-variant);padding-top:14px">
+      <p class="sub-note" style="margin-bottom:10px">Forgot your security answer too? You can reset the app (all local data will be erased).</p>
+      <button type="button" class="m3-btn-danger ripple-host" style="width:100%" onclick="emergencyResetApp()">Factory Reset & Remove PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================
+     BOTTOM SHEET 8: NOTIFICATIONS CENTER
+     ======================================================================== -->
+<div class="sheet-scrim" id="notifSheetScrim" onclick="onScrimClick(event, 'notifSheetScrim')">
+  <div class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="notifSheetTitle">
+    <div class="sheet-drag-zone" data-sheet="notifSheetScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="notifSheetTitle">Notifications</h2>
+      <button type="button" class="md-icon-btn compact" onclick="closeSheet('notifSheetScrim')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="notifListContainer"></div>
+  </div>
+</div>
+
+<!-- ========================================================================
+     BOTTOM SHEET 9: CUSTOM CONFIRMATION DIALOG
+     ======================================================================== -->
+<div class="sheet-scrim" id="confirmSheetScrim" onclick="onScrimClick(event, 'confirmSheetScrim')">
+  <div class="bottom-sheet" id="confirmSheetBody" role="dialog" aria-modal="true" aria-labelledby="confirmSheetTitle">
+    <div class="sheet-drag-zone" data-sheet="confirmSheetScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="confirmSheetTitle">Confirm Action</h2>
+    </div>
+    <p class="sub-note" id="confirmSheetDesc" style="font-size:13.5px;margin-bottom:20px"></p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button type="button" class="m3-btn-outlined ripple-host" onclick="closeSheet('confirmSheetScrim')">Cancel</button>
+      <button type="button" class="m3-btn-danger ripple-host" id="confirmSheetOkBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="md-snackbar" id="mdSnackbar" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+/* ==========================================================================
+   STORAGE KEYS & 18 GEOMETRIC SVG ICONS
+   ========================================================================== */
+const KEYS = {
+  TX: "asbily_m3_transactions_v4",
+  CAT: "asbily_m3_categories_v4",
+  REC: "asbily_m3_recurring_v4",
+  WAL: "asbily_m3_wallets_v4",
+  SET: "asbily_m3_settings_v4"
+};
+
+const ICONS = {
+  wallet: '<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>',
+  briefcase: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  trending: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+  layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+  award: '<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
+  utensils: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+  home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  car: '<path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/>',
+  receipt: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+  bag: '<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+  cpu: '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/>',
+  heart: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  tag: '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+  circle: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>'
+};
+
+const DEFAULT_CATS = {
+  income: [
+    { name: "Salary", icon: "wallet" },
+    { name: "Business", icon: "briefcase" },
+    { name: "Freelance", icon: "layers" },
+    { name: "Investments", icon: "trending" },
+    { name: "Bonus & Grants", icon: "award" },
+    { name: "Other Income", icon: "circle" }
+  ],
+  expense: [
+    { name: "Food & Dining", icon: "utensils" },
+    { name: "Housing & Rent", icon: "home" },
+    { name: "Transport", icon: "car" },
+    { name: "Utilities & Bills", icon: "zap" },
+    { name: "Shopping", icon: "bag" },
+    { name: "Software & Tech", icon: "cpu" },
+    { name: "Healthcare", icon: "heart" },
+    { name: "Education", icon: "book" },
+    { name: "Travel", icon: "globe" },
+    { name: "Insurance", icon: "shield" },
+    { name: "Other Expense", icon: "tag" }
+  ]
+};
+
+const DEFAULT_WALLETS = [
+  { id: "wal_cash", name: "Cash", icon: "wallet" },
+  { id: "wal_bank", name: "Bank Account", icon: "briefcase" },
+  { id: "wal_mfs", name: "bKash / Nagad", icon: "zap" }
+];
+
+const SYMBOLS = { BDT: "৳", USD: "$", EUR: "€", GBP: "£", INR: "₹" };
+
+/* ==========================================================================
+   STATE & STEP-BY-STEP NAVIGATION STACK
+   ========================================================================== */
+let transactions = readJSON(KEYS.TX, []);
+let categories = readCategories();
+let recurringItems = readJSON(KEYS.REC, []);
+let wallets = readWallets();
+let settings = readSettings();
+
+let currentView = "home";
+let viewStack = ["home"]; // Tracks exact sequence of visited views
+
+let homeMonthOffset = 0;
+let homeShowAllTime = false;
+
+let activityTypeFilter = "all";
+let activityPeriodFilter = "all";
+let activityWalletFilter = "all";
+
+let txFormType = "expense";
+let editingTxId = null;
+
+let catFormType = "expense";
+let editingCatName = null;
+let chosenCatIcon = "tag";
+
+let recFormType = "expense";
+let selectedChartIdx = 5;
+
+let pinMode = "unlock"; // "unlock" | "setup" | "confirm"
+let pinBuffer = "";
+let pinTempFirst = "";
+let pendingPinToSave = "";
+
+let snackTimer = null;
+let idleTimer = null;
+let lastBackPressTime = 0;
+
+/* ==========================================================================
+   STORAGE HELPERS
+   ========================================================================== */
+function readJSON(key, fallback) {
+  try {
+    const val = JSON.parse(localStorage.getItem(key) || "null");
+    return Array.isArray(val) ? val : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function readWallets() {
+  const list = readJSON(KEYS.WAL, null);
+  return list && list.length ? list : structuredClone(DEFAULT_WALLETS);
+}
+
+function readCategories() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEYS.CAT) || "null");
+    if (!raw || !Array.isArray(raw.income) || !Array.isArray(raw.expense)) {
+      return structuredClone(DEFAULT_CATS);
+    }
+    return {
+      income: raw.income.length ? raw.income : structuredClone(DEFAULT_CATS.income),
+      expense: raw.expense.length ? raw.expense : structuredClone(DEFAULT_CATS.expense)
+    };
+  } catch {
+    return structuredClone(DEFAULT_CATS);
+  }
+}
+
+function readSettings() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEYS.SET) || "{}");
+    return {
+      currency: SYMBOLS[raw.currency] ? raw.currency : "BDT",
+      numFormat: ["bn", "en"].includes(raw.numFormat) ? raw.numFormat : "bn",
+      dark: Boolean(raw.dark),
+      accent: ["obsidian", "emerald", "cobalt", "teal"].includes(raw.accent) ? raw.accent : "obsidian",
+      budget: Number.isFinite(Number(raw.budget)) && Number(raw.budget) >= 0 ? Number(raw.budget) : 0,
+      categoryBudgets: raw.categoryBudgets && typeof raw.categoryBudgets === "object" ? raw.categoryBudgets : {},
+      pin: typeof raw.pin === "string" && /^\d{4}$/.test(raw.pin) ? raw.pin : "",
+      secQuestion: typeof raw.secQuestion === "string" ? raw.secQuestion : "",
+      secAnswer: typeof raw.secAnswer === "string" ? raw.secAnswer : "",
+      autoLockMins: Number.isFinite(Number(raw.autoLockMins)) ? Number(raw.autoLockMins) : 0
+    };
+  } catch {
+    return {
+      currency: "BDT", numFormat: "bn", dark: false, accent: "obsidian",
+      budget: 0, categoryBudgets: {}, pin: "", secQuestion: "", secAnswer: "", autoLockMins: 0
+    };
+  }
+}
+
+function persistAll() {
+  try {
+    localStorage.setItem(KEYS.TX, JSON.stringify(transactions));
+    localStorage.setItem(KEYS.CAT, JSON.stringify(categories));
+    localStorage.setItem(KEYS.REC, JSON.stringify(recurringItems));
+    localStorage.setItem(KEYS.WAL, JSON.stringify(wallets));
+    localStorage.setItem(KEYS.SET, JSON.stringify(settings));
+    return true;
+  } catch {
+    showSnackbar("Device storage full. Unable to save changes.");
+    return false;
+  }
+}
+
+/* ==========================================================================
+   MATERIAL RIPPLE & SWIPE-TO-DISMISS BOTTOM SHEETS
+   ========================================================================== */
+document.addEventListener("pointerdown", e => {
+  const host = e.target.closest(".ripple-host");
+  if (!host) return;
+  const rect = host.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  const ripple = document.createElement("span");
+  ripple.className = "md-ripple";
+  ripple.style.width = ripple.style.height = size + "px";
+  ripple.style.left = (e.clientX - rect.left - size / 2) + "px";
+  ripple.style.top = (e.clientY - rect.top - size / 2) + "px";
+  host.appendChild(ripple);
+  ripple.addEventListener("animationend", () => ripple.remove());
+});
+
+let dragStartY = 0;
+let draggingSheet = null;
+let draggingScrimId = null;
+
+document.addEventListener("touchstart", e => {
+  const zone = e.target.closest(".sheet-drag-zone");
+  if (!zone) return;
+  dragStartY = e.touches[0].clientY;
+  draggingScrimId = zone.dataset.sheet;
+  draggingSheet = zone.closest(".bottom-sheet");
+  if (draggingSheet) draggingSheet.style.transition = "none";
+}, { passive: true });
+
+document.addEventListener("touchmove", e => {
+  if (!draggingSheet) return;
+  const deltaY = Math.max(0, e.touches[0].clientY - dragStartY);
+  draggingSheet.style.transform = `translateY(${deltaY}px)`;
+}, { passive: true });
+
+document.addEventListener("touchend", e => {
+  if (!draggingSheet) return;
+  const deltaY = e.changedTouches[0].clientY - dragStartY;
+  draggingSheet.style.transition = "transform 0.2s cubic-bezier(0.2, 0, 0, 1)";
+  if (deltaY > 90 && draggingScrimId) {
+    draggingSheet.style.transform = "translateY(100%)";
+    setTimeout(() => {
+      closeSheet(draggingScrimId);
+      if (draggingSheet) draggingSheet.style.transform = "";
+    }, 180);
+  } else {
+    draggingSheet.style.transform = "";
+  }
+  draggingSheet = null;
+  draggingScrimId = null;
+});
+
+function openSheet(scrimId) {
+  const el = document.getElementById(scrimId);
+  if (el) {
+    const sheet = el.querySelector(".bottom-sheet");
+    if (sheet) sheet.style.transform = "";
+    if (!el.classList.contains("open")) {
+      el.classList.add("open");
+      // Push history entry so hardware/gesture back closes the sheet first
+      history.pushState({ sheet: scrimId, view: currentView }, "", location.href);
+    }
+  }
+}
+
+function closeSheet(scrimId) {
+  const el = document.getElementById(scrimId);
+  if (el) el.classList.remove("open");
+  if (scrimId === "txSheetScrim") editingTxId = null;
+  if (scrimId === "catSheetScrim") editingCatName = null;
+}
+
+function getTopOpenSheetId() {
+  const openSheets = Array.from(document.querySelectorAll(".sheet-scrim.open"));
+  return openSheets.length ? openSheets[openSheets.length - 1].id : null;
+}
+
+function onScrimClick(e, scrimId) {
+  if (e.target.id === scrimId) closeSheet(scrimId);
+}
+
+/* ==========================================================================
+   FORMATTING & DATE HELPERS
+   ========================================================================== */
+function money(val) {
+  const sym = SYMBOLS[settings.currency] || "৳";
+  const locale = settings.numFormat === "bn" ? "en-IN" : "en-US";
+  return sym + Number(val || 0).toLocaleString(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function esc(str) {
+  return String(str ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function yesterdayStr() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function getOffsetMonthInfo(offset) {
+  const d = new Date();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + offset);
+  const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const label = d.toLocaleString("en-US", { month: "short", year: "numeric" });
+  return { ym, label };
+}
+
+function iconSvg(key) {
+  const path = ICONS[key] || ICONS.tag;
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+}
+
+function catIconSvg(type, catName) {
+  const found = (categories[type] || []).find(c => c.name === catName);
+  return iconSvg(found ? found.icon : "tag");
+}
+
+function getWalletName(walletId) {
+  const w = wallets.find(x => x.id === walletId);
+  return w ? w.name : "Cash";
+}
+
+function showSnackbar(msg) {
+  const el = document.getElementById("mdSnackbar");
+  el.textContent = msg;
+  el.style.display = "block";
+  clearTimeout(snackTimer);
+  snackTimer = setTimeout(() => {
+    el.style.display = "none";
+  }, 2000);
+}
+
+function openConfirmSheet(title, desc, btnText, onConfirm) {
+  document.getElementById("confirmSheetTitle").textContent = title;
+  document.getElementById("confirmSheetDesc").textContent = desc;
+  const okBtn = document.getElementById("confirmSheetOkBtn");
+  okBtn.textContent = btnText;
+  okBtn.onclick = () => {
+    closeSheet("confirmSheetScrim");
+    onConfirm();
+  };
+  openSheet("confirmSheetScrim");
+}
+
+/* ==========================================================================
+   NOTIFICATIONS ENGINE & NOTIFICATION CENTER SHEET
+   ========================================================================== */
+function getActiveNotifications() {
+  const list = [];
+  const today = todayStr();
+  const curMonth = today.slice(0, 7);
+
+  // 1. Check Due Recurring Schedules
+  const dueList = recurringItems.filter(r => r.nextDate <= today);
+  if (dueList.length > 0) {
+    list.push({
+      type: "info",
+      title: `${dueList.length} Recurring Payment${dueList.length > 1 ? "s" : ""} Due`,
+      desc: `Pending: ${dueList.map(d => d.title).join(", ")}`,
+      actionLabel: "Post Now",
+      actionFn: "closeSheet('notifSheetScrim'); postAllDueRecurring();"
+    });
+  }
+
+  // 2. Check Monthly Budget Status
+  const curMonthSpent = transactions
+    .filter(t => t.type === "expense" && t.date.startsWith(curMonth))
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  if (settings.budget > 0) {
+    const pct = (curMonthSpent / settings.budget) * 100;
+    if (curMonthSpent > settings.budget) {
+      list.push({
+        type: "danger",
+        title: "Monthly Budget Exceeded",
+        desc: `You have spent ${money(curMonthSpent - settings.budget)} over your monthly limit.`,
+        actionLabel: "View Budget",
+        actionFn: "closeSheet('notifSheetScrim'); switchView('budget');"
+      });
+    } else if (pct >= 85) {
+      list.push({
+        type: "warn",
+        title: "Budget Limit Warning",
+        desc: `You have used ${pct.toFixed(0)}% of your monthly spending limit.`,
+        actionLabel: "Check Budget",
+        actionFn: "closeSheet('notifSheetScrim'); switchView('budget');"
+      });
+    }
+  }
+
+  // 3. Check Category Cap Overages
+  for (const [catName, cap] of Object.entries(settings.categoryBudgets || {})) {
+    if (cap > 0) {
+      const catSpent = transactions
+        .filter(t => t.type === "expense" && t.category === catName && t.date.startsWith(curMonth))
+        .reduce((s, t) => s + Number(t.amount), 0);
+      if (catSpent > cap) {
+        list.push({
+          type: "warn",
+          title: `${catName} Cap Exceeded`,
+          desc: `Spent ${money(catSpent)} out of ${money(cap)} cap this month.`,
+          actionLabel: "Inspect",
+          actionFn: "closeSheet('notifSheetScrim'); switchView('budget');"
+        });
+      }
+    }
+  }
+
+  // 4. Security Reminder if PIN is off
+  if (!settings.pin) {
+    list.push({
+      type: "info",
+      title: "Secure Your Ledger",
+      desc: "Enable a 4-digit PIN in Settings to keep your financial data private.",
+      actionLabel: "Set PIN",
+      actionFn: "closeSheet('notifSheetScrim'); switchView('more');"
+    });
+  }
+
+  return list;
+}
+
+function updateNotificationBadge() {
+  const notifs = getActiveNotifications();
+  const urgentCount = notifs.filter(n => n.type === "danger" || n.type === "warn" || n.actionLabel === "Post Now").length;
+  const badge = document.getElementById("topNotifBadge");
+  if (urgentCount > 0) {
+    badge.textContent = urgentCount;
+    badge.classList.add("active");
+  } else {
+    badge.classList.remove("active");
+  }
+}
+
+function openNotificationsSheet() {
+  const notifs = getActiveNotifications();
+  const container = document.getElementById("notifListContainer");
+
+  if (!notifs.length) {
+    container.innerHTML = emptyHTML("All Caught Up!", "You have no pending alerts, budget warnings, or due payments.");
+  } else {
+    container.innerHTML = notifs.map(n => {
+      let icon = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>';
+      if (n.type === "danger" || n.type === "warn") {
+        icon = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
+      }
+      return `
+        <div class="notif-item">
+          <div class="notif-icon ${n.type}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13.5px;font-weight:700">${esc(n.title)}</div>
+            <div class="sub-note" style="margin-top:2px">${esc(n.desc)}</div>
+            ${n.actionLabel ? `<button type="button" class="text-action-btn" style="padding:0;min-height:30px;margin-top:4px" onclick="${n.actionFn}">${esc(n.actionLabel)} →</button>` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  openSheet("notifSheetScrim");
+}
+
+/* ==========================================================================
+   STEP-BY-STEP NAVIGATION, BROWSER HISTORY & DOUBLE BACK TO EXIT
+   ========================================================================== */
+const VIEW_TITLES = {
+  home: "Asbily",
+  activity: "Activity Ledger",
+  analytics: "Analytics",
+  budget: "Budget Caps",
+  more: "Settings & Tools",
+  categories: "Categories",
+  recurring: "Recurring Schedules",
+  wallets: "Accounts & Wallets"
+};
+
+const SUB_VIEWS = ["categories", "recurring", "wallets"];
+
+function applyViewUI(viewName) {
+  currentView = viewName;
+  document.querySelectorAll(".view-section").forEach(v => v.classList.remove("active"));
+  const target = document.getElementById("view-" + viewName);
+  if (target) target.classList.add("active");
+
+  const showBackBtn = viewName !== "home";
+  document.getElementById("topBackBtn").style.display = showBackBtn ? "grid" : "none";
+  document.getElementById("topBrandLogo").style.display = showBackBtn ? "none" : "grid";
+  document.getElementById("topAppBarTitle").textContent = VIEW_TITLES[viewName] || "Asbily";
+
+  const activeNav = SUB_VIEWS.includes(viewName) ? "more" : viewName;
+  document.querySelectorAll(".nav-dest").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.nav === activeNav);
+  });
+
+  document.getElementById("mainFab").style.display = (viewName === "home" || viewName === "activity") ? "inline-flex" : "none";
+
+  renderAll();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function switchView(viewName) {
+  if (viewName === currentView) return;
+
+  if (viewName === "home") {
+    viewStack = ["home"];
+  } else {
+    // Ensure sub-views always have 'more' as parent step so back goes Sub-view -> More -> Home
+    if (SUB_VIEWS.includes(viewName) && viewStack[viewStack.length - 1] !== "more") {
+      viewStack.push("more");
+      history.pushState({ view: "more" }, "", location.href);
+    }
+    // Avoid consecutive duplicates in stack
+    if (viewStack[viewStack.length - 1] !== viewName) {
+      viewStack.push(viewName);
+    }
+  }
+
+  history.pushState({ view: viewName }, "", location.href);
+  applyViewUI(viewName);
+}
+
+function exitApplication() {
+  // Support Android WebView JavaScript Interfaces if embedded in APK
+  try {
+    if (window.Android && typeof window.Android.exitApp === "function") {
+      window.Android.exitApp();
+      return;
+    }
+    if (window.AndroidInterface && typeof window.AndroidInterface.closeApp === "function") {
+      window.AndroidInterface.closeApp();
+      return;
+    }
+  } catch {}
+
+  // Standard Web / PWA exit fallback
+  window.close();
+  history.go(-history.length);
+}
+
+function handleBackStep() {
+  // 1. If any Bottom Sheet is open, close the topmost sheet first
+  const openSheetId = getTopOpenSheetId();
+  if (openSheetId) {
+    closeSheet(openSheetId);
+    history.pushState({ view: currentView }, "", location.href);
+    return;
+  }
+
+  // 2. Step-by-step back through visited views until reaching Home
+  if (currentView !== "home") {
+    if (viewStack.length > 1) {
+      viewStack.pop();
+      const prevView = viewStack[viewStack.length - 1];
+      applyViewUI(prevView);
+    } else {
+      viewStack = ["home"];
+      applyViewUI("home");
+    }
+    history.pushState({ view: currentView }, "", location.href);
+    return;
+  }
+
+  // 3. On Home Screen: Double Back Press to Exit (within 2 seconds)
+  const now = Date.now();
+  if (now - lastBackPressTime < 2000) {
+    exitApplication();
+  } else {
+    lastBackPressTime = now;
+    showSnackbar("Press back again to exit");
+    history.pushState({ view: "home" }, "", location.href);
+  }
+}
+
+// Intercept Mobile Hardware / Gesture Back Button
+window.addEventListener("popstate", () => {
+  handleBackStep();
+});
+
+// Initialize baseline history state on load
+history.replaceState({ view: "home" }, "", location.href);
+history.pushState({ view: "home" }, "", location.href);
+
+function openSearchActivity() {
+  switchView("activity");
+  setTimeout(() => document.getElementById("ledgerSearchInput")?.focus(), 120);
+}
+
+/* ==========================================================================
+   HOME PERIOD STEPPER, WALLETS & DASHBOARD RENDERER
+   ========================================================================== */
+function stepHomePeriod(delta) {
+  homeShowAllTime = false;
+  homeMonthOffset += delta;
+  renderHome();
+}
+
+function toggleHomeAllTime() {
+  homeShowAllTime = !homeShowAllTime;
+  renderHome();
+}
+
+function renderHome() {
+  const { ym, label } = getOffsetMonthInfo(homeMonthOffset);
+  document.getElementById("heroPeriodLabel").textContent = homeShowAllTime ? "All Time" : label;
+  document.getElementById("heroBalanceTitle").textContent = homeShowAllTime ? "Cumulative Net Balance" : `${label} Net Cash Flow`;
+
+  const periodTxs = homeShowAllTime
+    ? transactions
+    : transactions.filter(t => t.date.startsWith(ym));
+
+  const pTotals = periodTxs.reduce((acc, t) => {
+    acc[t.type] += Number(t.amount);
+    return acc;
+  }, { income: 0, expense: 0 });
+
+  const pNet = pTotals.income - pTotals.expense;
+  document.getElementById("heroNetAmount").textContent = money(pNet);
+  document.getElementById("heroIncomeAmount").textContent = money(pTotals.income);
+  document.getElementById("heroExpenseAmount").textContent = money(pTotals.expense);
+
+  // Render Wallets Strip
+  document.getElementById("homeWalletStrip").innerHTML = wallets.map((w) => {
+    const bal = transactions.reduce((sum, t) => {
+      const wId = t.walletId || wallets[0].id;
+      if (wId !== w.id) return sum;
+      return sum + (t.type === "income" ? Number(t.amount) : -Number(t.amount));
+    }, 0);
+    return `
+      <div class="wallet-pill-card">
+        <div class="wallet-pill-top">
+          ${iconSvg(w.icon)}
+          <span>${esc(w.name)}</span>
+        </div>
+        <div class="wallet-pill-bal num ${bal < 0 ? 'negative' : ''}">${money(bal)}</div>
+      </div>
+    `;
+  }).join("");
+
+  // All-time net worth KPI
+  const allTotals = transactions.reduce((acc, t) => {
+    acc[t.type] += Number(t.amount);
+    return acc;
+  }, { income: 0, expense: 0 });
+
+  document.getElementById("kpiAllTimeNet").textContent = money(allTotals.income - allTotals.expense);
+  document.getElementById("kpiEntryCount").textContent = `${transactions.length} total entr${transactions.length === 1 ? "y" : "ies"}`;
+
+  // Savings Rate KPI
+  const sRate = pTotals.income > 0 ? ((pNet / pTotals.income) * 100) : 0;
+  const sEl = document.getElementById("kpiSavingsRate");
+  sEl.textContent = `${sRate.toFixed(1)}%`;
+  sEl.className = "kpi-tile-val num " + (sRate > 0 ? "positive" : sRate < 0 ? "negative" : "");
+  document.getElementById("kpiSavingsSub").textContent = homeShowAllTime ? "All-time ratio" : `${label} ratio`;
+
+  // Current Calendar Month Budget Health & Smart Warning Banner
+  const curMonth = todayStr().slice(0, 7);
+  const curMonthSpent = transactions
+    .filter(t => t.type === "expense" && t.date.startsWith(curMonth))
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const cap = settings.budget;
+  const bar = document.getElementById("homeBudgetBar");
+  const alertEl = document.getElementById("homeSmartAlertBanner");
+
+  if (cap > 0) {
+    const pct = (curMonthSpent / cap) * 100;
+    bar.style.width = Math.min(100, pct) + "%";
+    bar.className = "m3-progress-fill" + (curMonthSpent > cap ? " over" : pct >= 80 ? " warn" : "");
+    document.getElementById("homeBudgetRatio").textContent = `${money(curMonthSpent)} / ${money(cap)}`;
+
+    const now = new Date();
+    const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const remDays = Math.max(1, totalDays - now.getDate() + 1);
+    const remAmount = Math.max(0, cap - curMonthSpent);
+    document.getElementById("homeBudgetDaily").textContent = curMonthSpent > cap
+      ? `Over budget by ${money(curMonthSpent - cap)}`
+      : `${money(remAmount / remDays)}/day safe spend`;
+
+    if (curMonthSpent > cap) {
+      alertEl.style.display = "flex";
+      alertEl.className = "alert-banner danger";
+      alertEl.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Alert: You exceeded your monthly budget by ${money(curMonthSpent - cap)}!</span>
+      `;
+    } else if (pct >= 85) {
+      alertEl.style.display = "flex";
+      alertEl.className = "alert-banner warn";
+      alertEl.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Warning: You have used ${pct.toFixed(0)}% of your monthly budget!</span>
+      `;
+    } else {
+      alertEl.style.display = "none";
+    }
+  } else {
+    bar.style.width = "0%";
+    bar.className = "m3-progress-fill";
+    document.getElementById("homeBudgetRatio").textContent = "Uncapped";
+    document.getElementById("homeBudgetDaily").textContent = "Set a monthly cap in Budget";
+    alertEl.style.display = "none";
+  }
+
+  // Due Recurring Schedules Check
+  const today = todayStr();
+  const dueList = recurringItems.filter(r => r.nextDate <= today);
+  const banner = document.getElementById("dueRecurringBanner");
+  if (dueList.length > 0) {
+    banner.style.display = "block";
+    document.getElementById("dueRecurringTitle").textContent = `${dueList.length} Recurring Schedule${dueList.length > 1 ? "s" : ""} Due`;
+    document.getElementById("dueRecurringDesc").textContent = dueList.map(d => d.title).join(", ");
+  } else {
+    banner.style.display = "none";
+  }
+
+  // Recent Activity (Top 5)
+  const recent = [...transactions]
+    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
+    .slice(0, 5);
+
+  document.getElementById("homeRecentList").innerHTML = recent.length
+    ? recent.map(txRowHTML).join("")
+    : emptyHTML("No Transactions Yet", "Tap the Record button below to log your first income or expense.");
+}
+
+/* ==========================================================================
+   TRANSACTION CRUD, DUPLICATE & DETAIL SHEET
+   ========================================================================== */
+function openTxSheet(defaultType = "expense", editId = null) {
+  editingTxId = editId;
+  document.getElementById("txForm").reset();
+
+  if (editId) {
+    const tx = transactions.find(t => t.id === editId);
+    if (!tx) return;
+    txFormType = tx.type;
+    document.getElementById("txSheetTitle").textContent = "Edit Transaction";
+    document.getElementById("txSubmitLabel").textContent = "Update Transaction";
+    document.getElementById("txAmountField").value = tx.amount;
+    document.getElementById("txTitleField").value = tx.title;
+    document.getElementById("txDateField").value = tx.date;
+    document.getElementById("txNoteField").value = tx.note || "";
+    syncTxFormUI();
+    document.getElementById("txCatField").value = tx.category;
+    document.getElementById("txWalletField").value = tx.walletId || wallets[0].id;
+  } else {
+    txFormType = defaultType;
+    document.getElementById("txSheetTitle").textContent = "New Transaction";
+    document.getElementById("txSubmitLabel").textContent = "Save Transaction";
+    document.getElementById("txDateField").value = todayStr();
+    syncTxFormUI();
+  }
+
+  openSheet("txSheetScrim");
+}
+
+function setTxFormType(type) {
+  txFormType = type;
+  syncTxFormUI();
+}
+
+function syncTxFormUI() {
+  document.getElementById("segTypeIncome").className = "seg-option" + (txFormType === "income" ? " active income" : "");
+  document.getElementById("segTypeExpense").className = "seg-option" + (txFormType === "expense" ? " active expense" : "");
+
+  const sel = document.getElementById("txCatField");
+  const prev = sel.value;
+  const list = categories[txFormType] || [];
+  sel.innerHTML = list.map(c => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("");
+  if (list.some(c => c.name === prev)) sel.value = prev;
+
+  const wSel = document.getElementById("txWalletField");
+  const wPrev = wSel.value;
+  wSel.innerHTML = wallets.map(w => `<option value="${esc(w.id)}">${esc(w.name)}</option>`).join("");
+  if (wallets.some(w => w.id === wPrev)) wSel.value = wPrev;
+}
+
+function saveTransaction(e) {
+  e.preventDefault();
+  const amount = Number(document.getElementById("txAmountField").value);
+  const title = document.getElementById("txTitleField").value.trim();
+  const category = document.getElementById("txCatField").value;
+  const walletId = document.getElementById("txWalletField").value || wallets[0].id;
+  const date = document.getElementById("txDateField").value;
+  const note = document.getElementById("txNoteField").value.trim();
+
+  if (!Number.isFinite(amount) || amount <= 0 || !title || !category || !date) {
+    showSnackbar("Please complete all required fields.");
+    return;
+  }
+
+  const entry = {
+    id: editingTxId || ("tx_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6)),
+    type: txFormType,
+    amount: Math.round(amount * 100) / 100,
+    title,
+    category,
+    walletId,
+    date,
+    note
+  };
+
+  if (editingTxId) {
+    transactions = transactions.map(t => t.id === editingTxId ? entry : t);
+  } else {
+    transactions = [entry, ...transactions];
+  }
+
+  persistAll();
+  const wasEdit = Boolean(editingTxId);
+  closeSheet("txSheetScrim");
+  renderAll();
+  showSnackbar(wasEdit ? "Transaction updated" : "Transaction saved");
+}
+
+function openTxDetail(id) {
+  const tx = transactions.find(t => t.id === id);
+  if (!tx) return;
+
+  const isInc = tx.type === "income";
+  document.getElementById("detailSheetContent").innerHTML = `
+    <div style="background:var(--md-surface-container-low);border-radius:18px;padding:18px;text-align:center;margin-bottom:16px">
+      <div class="sub-note" style="font-weight:700;text-transform:uppercase;letter-spacing:0.6px">${isInc ? "Income" : "Expense"}</div>
+      <div class="num ${isInc ? "positive" : "negative"}" style="font-size:30px;font-weight:800;margin-top:4px">${isInc ? "+" : "−"}${money(tx.amount)}</div>
+    </div>
+    <div class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--md-outline-variant)">
+      <span class="sub-note">Title</span><strong>${esc(tx.title)}</strong>
+    </div>
+    <div class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--md-outline-variant)">
+      <span class="sub-note">Category</span><strong>${esc(tx.category)}</strong>
+    </div>
+    <div class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--md-outline-variant)">
+      <span class="sub-note">Account / Wallet</span><strong>${esc(getWalletName(tx.walletId))}</strong>
+    </div>
+    <div class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--md-outline-variant)">
+      <span class="sub-note">Date</span><strong class="num">${esc(tx.date)}</strong>
+    </div>
+    <div class="flex-between" style="padding:10px 0">
+      <span class="sub-note">Note</span><span style="text-align:right;max-width:65%">${tx.note ? esc(tx.note) : '<span class="sub-note">No note</span>'}</span>
+    </div>
+  `;
+
+  document.getElementById("detailSheetFooter").innerHTML = `
+    <button type="button" class="m3-btn-tonal ripple-host" onclick="closeSheet('detailSheetScrim'); openTxSheet('${tx.type}', '${esc(tx.id)}')">Edit</button>
+    <button type="button" class="m3-btn-outlined ripple-host" onclick="duplicateTx('${esc(tx.id)}')">Duplicate</button>
+    <button type="button" class="m3-btn-danger ripple-host" onclick="deleteTxPrompt('${esc(tx.id)}')">Delete</button>
+  `;
+
+  openSheet("detailSheetScrim");
+}
+
+function duplicateTx(id) {
+  const orig = transactions.find(t => t.id === id);
+  if (!orig) return;
+  const copy = {
+    ...orig,
+    id: "tx_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+    date: todayStr()
+  };
+  transactions = [copy, ...transactions];
+  persistAll();
+  closeSheet("detailSheetScrim");
+  renderAll();
+  showSnackbar("Transaction duplicated for today");
+}
+
+function deleteTxPrompt(id) {
+  const tx = transactions.find(t => t.id === id);
+  if (!tx) return;
+  closeSheet("detailSheetScrim");
+  openConfirmSheet(
+    "Delete Transaction",
+    `Remove "${tx.title}" (${money(tx.amount)}) permanently?`,
+    "Delete",
+    () => {
+      transactions = transactions.filter(t => t.id !== id);
+      persistAll();
+      renderAll();
+      showSnackbar("Transaction deleted");
+    }
+  );
+}
+
+function txRowHTML(t) {
+  const isInc = t.type === "income";
+  const wName = getWalletName(t.walletId);
+  return `
+    <div class="tx-card ripple-host" onclick="openTxDetail('${esc(t.id)}')">
+      <div class="tx-leading">${catIconSvg(t.type, t.category)}</div>
+      <div class="tx-center">
+        <div class="tx-name">${esc(t.title)}</div>
+        <div class="tx-sub">
+          <span class="tx-tag">${esc(t.category)}</span>
+          <span class="tx-wallet-badge">${esc(wName)}</span>
+          ${t.note ? `<span>${esc(t.note)}</span>` : ""}
+        </div>
+      </div>
+      <div class="tx-trailing">
+        <div class="tx-val num ${isInc ? "positive" : "negative"}">${isInc ? "+" : "−"}${money(t.amount)}</div>
+        <div class="tx-date-tiny num">${esc(t.date)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function emptyHTML(title, desc) {
+  return `
+    <div class="empty-box">
+      <div class="empty-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/></svg>
+      </div>
+      <h3>${esc(title)}</h3>
+      <p>${esc(desc)}</p>
+    </div>
+  `;
+}
+
+/* ==========================================================================
+   ACTIVITY VIEW (DATE-GROUPED LEDGER)
+   ========================================================================== */
+function setActivityTypeFilter(type) {
+  activityTypeFilter = type;
+  document.querySelectorAll("#activityFilterChips [data-type]").forEach(btn => {
+    btn.classList.toggle("selected", btn.dataset.type === type);
+  });
+  renderActivity();
+}
+
+function toggleActivityPeriodChip(period) {
+  activityPeriodFilter = activityPeriodFilter === period ? "all" : period;
+  document.querySelectorAll("#activityFilterChips [data-period]").forEach(btn => {
+    btn.classList.toggle("selected", btn.dataset.period === activityPeriodFilter);
+  });
+  renderActivity();
+}
+
+function setActivityWalletFilter(wId) {
+  activityWalletFilter = activityWalletFilter === wId ? "all" : wId;
+  renderActivity();
+}
+
+function renderActivity() {
+  document.getElementById("activityWalletFilterChips").innerHTML = wallets.map(w => `
+    <button type="button" class="m3-chip ${activityWalletFilter === w.id ? 'selected' : ''}" onclick="setActivityWalletFilter('${esc(w.id)}')">
+      ${iconSvg(w.icon)}
+      ${esc(w.name)}
+    </button>
+  `).join("");
+
+  const q = (document.getElementById("ledgerSearchInput")?.value || "").trim().toLowerCase();
+  const sortMode = document.getElementById("activitySortSelect")?.value || "newest";
+  const today = todayStr();
+  const yest = yesterdayStr();
+  const month = today.slice(0, 7);
+  const year = today.slice(0, 4);
+
+  let list = transactions.filter(t => {
+    const wId = t.walletId || wallets[0].id;
+    const wName = getWalletName(wId);
+    const matchesQ = !q || `${t.title} ${t.category} ${wName} ${t.note || ""}`.toLowerCase().includes(q);
+    const matchesType = activityTypeFilter === "all" || t.type === activityTypeFilter;
+    const matchesWallet = activityWalletFilter === "all" || wId === activityWalletFilter;
+    const matchesPeriod =
+      activityPeriodFilter === "all" ||
+      (activityPeriodFilter === "today" && t.date === today) ||
+      (activityPeriodFilter === "month" && t.date.startsWith(month)) ||
+      (activityPeriodFilter === "year" && t.date.startsWith(year));
+    return matchesQ && matchesType && matchesWallet && matchesPeriod;
+  });
+
+  list.sort((a, b) => {
+    if (sortMode === "highest") return Number(b.amount) - Number(a.amount);
+    if (sortMode === "lowest") return Number(a.amount) - Number(b.amount);
+    return b.date.localeCompare(a.date) || b.id.localeCompare(a.id);
+  });
+
+  document.getElementById("activityResultCount").textContent = `${list.length} entr${list.length === 1 ? "y" : "ies"}`;
+
+  const container = document.getElementById("activityGroupedContainer");
+  if (!list.length) {
+    container.innerHTML = emptyHTML("No Matching Entries", "Adjust search filters or tap Record to log a transaction.");
+    return;
+  }
+
+  if (sortMode !== "newest") {
+    container.innerHTML = `<div class="tx-list">${list.map(txRowHTML).join("")}</div>`;
+    return;
+  }
+
+  const groups = {};
+  for (const t of list) {
+    if (!groups[t.date]) groups[t.date] = [];
+    groups[t.date].push(t);
+  }
+
+  container.innerHTML = Object.entries(groups).map(([dateKey, items]) => {
+    let label = dateKey;
+    if (dateKey === today) label = "Today";
+    else if (dateKey === yest) label = "Yesterday";
+    else {
+      const parsed = new Date(dateKey + "T00:00:00");
+      if (!isNaN(parsed)) {
+        label = parsed.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+      }
+    }
+
+    const dayNet = items.reduce((s, x) => s + (x.type === "income" ? Number(x.amount) : -Number(x.amount)), 0);
+    return `
+      <div class="date-group-header">
+        <span>${esc(label)}</span>
+        <span class="num">${dayNet >= 0 ? "+" : "−"}${money(Math.abs(dayNet))}</span>
+      </div>
+      <div class="tx-list">${items.map(txRowHTML).join("")}</div>
+    `;
+  }).join("");
+}
+
+/* ==========================================================================
+   ANALYTICS (INTERACTIVE SVG CASH FLOW CHART & CATEGORY BREAKDOWN)
+   ========================================================================== */
+function selectChartMonth(idx) {
+  selectedChartIdx = idx;
+  renderAnalytics();
+}
+
+function renderAnalytics() {
+  const d30 = new Date();
+  d30.setDate(d30.getDate() - 30);
+  const cutoff = d30.toISOString().slice(0, 10);
+  const exp30 = transactions
+    .filter(t => t.type === "expense" && t.date >= cutoff)
+    .reduce((s, t) => s + Number(t.amount), 0);
+  document.getElementById("anaDailyAvg").textContent = money(exp30 / 30);
+
+  const catMap = {};
+  transactions.filter(t => t.type === "expense").forEach(t => {
+    catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount);
+  });
+  const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+  const totalOut = sortedCats.reduce((s, [, v]) => s + v, 0);
+
+  document.getElementById("anaTotalOutflow").textContent = money(totalOut);
+  if (sortedCats.length) {
+    document.getElementById("anaTopCat").textContent = sortedCats[0][0];
+    document.getElementById("anaTopCatVal").textContent = money(sortedCats[0][1]);
+  } else {
+    document.getElementById("anaTopCat").textContent = "None";
+    document.getElementById("anaTopCatVal").textContent = money(0);
+  }
+
+  document.getElementById("anaCategoryBreakdown").innerHTML = sortedCats.length
+    ? sortedCats.map(([name, val]) => {
+        const pct = totalOut > 0 ? (val / totalOut) * 100 : 0;
+        return `
+          <div class="dist-row">
+            <div class="dist-name" title="${esc(name)}">${esc(name)}</div>
+            <div class="dist-track"><div class="dist-fill" style="width:${pct}%"></div></div>
+            <div class="dist-val num">${money(val)}</div>
+          </div>
+        `;
+      }).join("")
+    : emptyHTML("No Expense Data", "Category spending proportions will appear once expenses are logged.");
+
+  const months = [];
+  const base = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(base.getFullYear(), base.getMonth() - i, 1);
+    const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const shortLabel = d.toLocaleString("en-US", { month: "short" });
+    const fullLabel = d.toLocaleString("en-US", { month: "short", year: "numeric" });
+    const inc = transactions.filter(t => t.type === "income" && t.date.startsWith(ym)).reduce((s, t) => s + Number(t.amount), 0);
+    const exp = transactions.filter(t => t.type === "expense" && t.date.startsWith(ym)).reduce((s, t) => s + Number(t.amount), 0);
+    months.push({ ym, shortLabel, fullLabel, inc, exp });
+  }
+
+  const activeM = months[selectedChartIdx] || months[5];
+  document.getElementById("chartSelectedReadout").innerHTML =
+    `<strong>${activeM.fullLabel}:</strong> <span class="positive num">+${money(activeM.inc)}</span> / <span class="negative num">−${money(activeM.exp)}</span>`;
+
+  const maxV = Math.max(1, ...months.flatMap(m => [m.inc, m.exp]));
+  const W = 420;
+  const H = 165;
+  const plotH = 124;
+  const colW = W / 6;
+
+  const colsSvg = months.map((m, idx) => {
+    const cx = idx * colW + colW / 2;
+    const hIn = Math.round((m.inc / maxV) * plotH);
+    const hEx = Math.round((m.exp / maxV) * plotH);
+    const isSel = idx === selectedChartIdx;
+
+    return `
+      <g style="cursor:pointer" onclick="selectChartMonth(${idx})">
+        <rect x="${idx * colW + 4}" y="4" width="${colW - 8}" height="${H - 8}" rx="10"
+          fill="var(--md-secondary-container)" opacity="${isSel ? 0.65 : 0}"/>
+        <rect x="${cx - 13}" y="${14 + (plotH - hIn)}" width="11" height="${Math.max(3, hIn)}" rx="3.5"
+          fill="var(--md-income)" opacity="${m.inc > 0 ? 1 : 0.22}"/>
+        <rect x="${cx + 2}" y="${14 + (plotH - hEx)}" width="11" height="${Math.max(3, hEx)}" rx="3.5"
+          fill="var(--md-primary)" opacity="${m.exp > 0 ? 1 : 0.22}"/>
+        <text x="${cx}" y="${H - 8}" text-anchor="middle" fill="${isSel ? "var(--md-on-surface)" : "var(--md-outline)"}"
+          font-size="11" font-weight="${isSel ? "700" : "600"}">${m.shortLabel}</text>
+      </g>
+    `;
+  }).join("");
+
+  document.getElementById("interactiveSvgChart").innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="6-Month Cash Flow Bar Chart">
+      <line x1="6" y1="${14 + plotH}" x2="${W - 6}" y2="${14 + plotH}" stroke="var(--md-outline-variant)" stroke-width="1"/>
+      ${colsSvg}
+    </svg>
+  `;
+}
+
+/* ==========================================================================
+   BUDGET PLANNING
+   ========================================================================== */
+function saveOverallBudget() {
+  const val = Number(document.getElementById("budgetOverallInput").value);
+  if (!Number.isFinite(val) || val < 0) {
+    showSnackbar("Enter a valid non-negative amount");
+    return;
+  }
+  settings.budget = Math.round(val * 100) / 100;
+  persistAll();
+  renderAll();
+  showSnackbar("Monthly spending cap saved");
+}
+
+function setCatBudget(catName, raw) {
+  const val = Number(raw);
+  if (!Number.isFinite(val) || val < 0) return;
+  if (val === 0) delete settings.categoryBudgets[catName];
+  else settings.categoryBudgets[catName] = Math.round(val * 100) / 100;
+  persistAll();
+  renderBudget();
+  updateNotificationBadge();
+  showSnackbar(`Updated cap for ${catName}`);
+}
+
+function renderBudget() {
+  document.getElementById("budgetCurrencyCode").textContent = settings.currency;
+  const curMonth = todayStr().slice(0, 7);
+  const monthExpTxs = transactions.filter(t => t.type === "expense" && t.date.startsWith(curMonth));
+  const spent = monthExpTxs.reduce((s, t) => s + Number(t.amount), 0);
+
+  const cap = settings.budget;
+  document.getElementById("budgetOverallInput").value = cap > 0 ? cap : "";
+  document.getElementById("budgetMonthSpent").textContent = money(spent);
+
+  const left = Math.max(0, cap - spent);
+  document.getElementById("budgetMonthLeft").textContent = money(left);
+
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const remDays = Math.max(1, daysInMonth - now.getDate() + 1);
+  document.getElementById("budgetDailySafe").textContent = `${money(cap > 0 ? left / remDays : 0)} / day`;
+
+  const bar = document.getElementById("budgetMainBar");
+  const pct = cap > 0 ? Math.min(100, (spent / cap) * 100) : 0;
+  bar.style.width = pct + "%";
+  bar.className = "m3-progress-fill" + (cap > 0 && spent > cap ? " over" : pct >= 80 ? " warn" : "");
+
+  const note = document.getElementById("budgetAlertNote");
+  if (cap <= 0) {
+    note.textContent = "Set an overall monthly limit above to monitor spending velocity.";
+  } else if (spent > cap) {
+    note.innerHTML = `<span class="negative" style="font-weight:700">Limit Exceeded:</span> Over budget by ${money(spent - cap)}.`;
+  } else {
+    note.textContent = `${((spent / cap) * 100).toFixed(1)}% utilized with ${remDays} day(s) remaining in this cycle.`;
+  }
+
+  let allocSum = 0;
+  document.getElementById("budgetCategoryList").innerHTML = (categories.expense || []).map(cat => {
+    const cSpent = monthExpTxs.filter(t => t.category === cat.name).reduce((s, t) => s + Number(t.amount), 0);
+    const cCap = Number(settings.categoryBudgets[cat.name] || 0);
+    allocSum += cCap;
+    const cPct = cCap > 0 ? Math.min(100, (cSpent / cCap) * 100) : 0;
+    const bCls = cCap > 0 && cSpent > cCap ? "over" : cPct >= 80 ? "warn" : "";
+
+    return `
+      <div class="m3-card" style="padding:14px">
+        <div class="flex-between">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0">
+            <div class="tx-leading" style="width:36px;height:36px">${iconSvg(cat.icon)}</div>
+            <div style="min-width:0">
+              <div class="tx-name">${esc(cat.name)}</div>
+              <div class="sub-note num">Spent: ${money(cSpent)}</div>
+            </div>
+          </div>
+          <input class="m3-input num" type="number" min="0" step="1" style="width:104px;min-height:40px;padding:6px 10px;font-size:12.5px"
+            placeholder="Cap" value="${cCap > 0 ? cCap : ""}"
+            onchange="setCatBudget('${esc(cat.name)}', this.value)">
+        </div>
+        ${cCap > 0 ? `<div class="m3-progress-track" style="margin:10px 0 0;height:6px"><div class="m3-progress-fill ${bCls}" style="width:${cPct}%"></div></div>` : ""}
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("budgetCatSumLabel").textContent = `Allocated: ${money(allocSum)}`;
+}
+
+/* ==========================================================================
+   WALLETS MANAGER
+   ========================================================================== */
+function openWalletSheet() {
+  document.getElementById("walletForm").reset();
+  openSheet("walletSheetScrim");
+}
+
+function saveWallet(e) {
+  e.preventDefault();
+  const name = document.getElementById("walletNameField").value.trim();
+  const icon = document.getElementById("walletIconField").value;
+  if (!name) return;
+
+  wallets.push({
+    id: "wal_" + Date.now(),
+    name,
+    icon
+  });
+
+  persistAll();
+  closeSheet("walletSheetScrim");
+  renderAll();
+  showSnackbar(`Wallet "${name}" added`);
+}
+
+function deleteWalletPrompt(id) {
+  if (wallets.length <= 1) {
+    showSnackbar("At least one wallet is required");
+    return;
+  }
+  const used = transactions.filter(t => (t.walletId || wallets[0].id) === id).length;
+  if (used > 0) {
+    showSnackbar(`Cannot delete: used in ${used} transaction(s)`);
+    return;
+  }
+  openConfirmSheet("Remove Wallet", "Delete this account/wallet permanently?", "Remove", () => {
+    wallets = wallets.filter(w => w.id !== id);
+    persistAll();
+    renderAll();
+    showSnackbar("Wallet removed");
+  });
+}
+
+function renderWalletsManager() {
+  document.getElementById("moreWalletsSub").textContent = `${wallets.length} active wallet${wallets.length === 1 ? "" : "s"}`;
+  document.getElementById("walletsManagerList").innerHTML = wallets.map(w => {
+    const bal = transactions.reduce((sum, t) => {
+      const wId = t.walletId || wallets[0].id;
+      if (wId !== w.id) return sum;
+      return sum + (t.type === "income" ? Number(t.amount) : -Number(t.amount));
+    }, 0);
+    return `
+      <div class="m3-card">
+        <div class="flex-between">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="tx-leading">${iconSvg(w.icon)}</div>
+            <div>
+              <div class="tx-name">${esc(w.name)}</div>
+              <div class="sub-note num">Current Balance: <strong>${money(bal)}</strong></div>
+            </div>
+          </div>
+          <button type="button" class="md-icon-btn compact" onclick="deleteWalletPrompt('${esc(w.id)}')" aria-label="Delete Wallet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ==========================================================================
+   CATEGORIES MANAGER
+   ========================================================================== */
+function openCategorySheet(type, editName = null) {
+  catFormType = type;
+  editingCatName = editName;
+
+  if (editName) {
+    const found = (categories[type] || []).find(c => c.name === editName);
+    document.getElementById("catSheetTitle").textContent = "Edit Category";
+    document.getElementById("catSubmitLabel").textContent = "Save Changes";
+    document.getElementById("catNameField").value = editName;
+    chosenCatIcon = found ? found.icon : "tag";
+  } else {
+    document.getElementById("catSheetTitle").textContent = `New ${type === "income" ? "Income" : "Expense"} Category`;
+    document.getElementById("catSubmitLabel").textContent = "Create Category";
+    document.getElementById("catNameField").value = "";
+    chosenCatIcon = type === "income" ? "wallet" : "tag";
+  }
+
+  renderCatIconGrid();
+  openSheet("catSheetScrim");
+}
+
+function renderCatIconGrid() {
+  document.getElementById("catIconGrid").innerHTML = Object.keys(ICONS).map(key => `
+    <button type="button" class="icon-tile ${chosenCatIcon === key ? "selected" : ""}" onclick="pickCatIcon('${key}')" aria-label="Icon ${key}">
+      ${iconSvg(key)}
+    </button>
+  `).join("");
+}
+
+function pickCatIcon(key) {
+  chosenCatIcon = key;
+  renderCatIconGrid();
+}
+
+function saveCategory(e) {
+  e.preventDefault();
+  const clean = document.getElementById("catNameField").value.trim();
+  if (!clean) return;
+
+  const list = categories[catFormType] || [];
+  if (list.some(c => c.name.toLowerCase() === clean.toLowerCase() && c.name !== editingCatName)) {
+    showSnackbar("Category name already exists");
+    return;
+  }
+
+  if (editingCatName) {
+    categories[catFormType] = list.map(c => c.name === editingCatName ? { name: clean, icon: chosenCatIcon } : c);
+    if (editingCatName !== clean) {
+      transactions = transactions.map(t => (t.type === catFormType && t.category === editingCatName) ? { ...t, category: clean } : t);
+      if (catFormType === "expense" && settings.categoryBudgets[editingCatName] !== undefined) {
+        settings.categoryBudgets[clean] = settings.categoryBudgets[editingCatName];
+        delete settings.categoryBudgets[editingCatName];
+      }
+    }
+  } else {
+    categories[catFormType] = [...list, { name: clean, icon: chosenCatIcon }];
+  }
+
+  persistAll();
+  closeSheet("catSheetScrim");
+  renderAll();
+  showSnackbar(editingCatName ? "Category updated" : "Category created");
+}
+
+function deleteCategoryPrompt(type, name) {
+  const usedCount = transactions.filter(t => t.type === type && t.category === name).length;
+  if (usedCount > 0) {
+    showSnackbar(`In use by ${usedCount} transaction(s)`);
+    return;
+  }
+  if ((categories[type] || []).length <= 1) {
+    showSnackbar("At least one category is required");
+    return;
+  }
+
+  openConfirmSheet("Remove Category", `Delete "${name}" from ${type} categories?`, "Remove", () => {
+    categories[type] = categories[type].filter(c => c.name !== name);
+    delete settings.categoryBudgets[name];
+    persistAll();
+    renderAll();
+    showSnackbar("Category removed");
+  });
+}
+
+function renderCategories() {
+  for (const type of ["income", "expense"]) {
+    const el = document.getElementById(type === "income" ? "catIncomeList" : "catExpenseList");
+    const list = categories[type] || [];
+    el.innerHTML = list.map((c, idx) => {
+      const count = transactions.filter(t => t.type === type && t.category === c.name).length;
+      return `
+        <div class="flex-between" style="padding:10px 0;${idx > 0 ? "border-top:1px solid var(--md-outline-variant)" : ""}">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0">
+            <div class="tx-leading" style="width:38px;height:38px">${iconSvg(c.icon)}</div>
+            <div style="min-width:0">
+              <div class="tx-name">${esc(c.name)}</div>
+              <div class="sub-note num">${count} record${count === 1 ? "" : "s"}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button type="button" class="md-icon-btn compact" onclick="openCategorySheet('${type}', '${esc(c.name)}')" aria-label="Edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button type="button" class="md-icon-btn compact" onclick="deleteCategoryPrompt('${type}', '${esc(c.name)}')" aria-label="Delete">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+}
+
+/* ==========================================================================
+   RECURRING TRANSACTIONS SCHEDULER
+   ========================================================================== */
+function openRecurringSheet() {
+  document.getElementById("recForm").reset();
+  recFormType = "expense";
+  document.getElementById("recNextDateField").value = todayStr();
+  syncRecFormUI();
+  openSheet("recSheetScrim");
+}
+
+function setRecFormType(type) {
+  recFormType = type;
+  syncRecFormUI();
+}
+
+function syncRecFormUI() {
+  document.getElementById("recSegIncome").className = "seg-option" + (recFormType === "income" ? " active income" : "");
+  document.getElementById("recSegExpense").className = "seg-option" + (recFormType === "expense" ? " active expense" : "");
+  const sel = document.getElementById("recCatField");
+  sel.innerHTML = (categories[recFormType] || []).map(c => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("");
+  const wSel = document.getElementById("recWalletField");
+  wSel.innerHTML = wallets.map(w => `<option value="${esc(w.id)}">${esc(w.name)}</option>`).join("");
+}
+
+function saveRecurring(e) {
+  e.preventDefault();
+  const amount = Number(document.getElementById("recAmountField").value);
+  const title = document.getElementById("recTitleField").value.trim();
+  const category = document.getElementById("recCatField").value;
+  const walletId = document.getElementById("recWalletField").value || wallets[0].id;
+  const freq = document.getElementById("recFreqField").value;
+  const nextDate = document.getElementById("recNextDateField").value;
+
+  if (!Number.isFinite(amount) || amount <= 0 || !title || !nextDate) return;
+
+  recurringItems.push({
+    id: "rec_" + Date.now(),
+    type: recFormType,
+    amount: Math.round(amount * 100) / 100,
+    title,
+    category,
+    walletId,
+    freq,
+    nextDate
+  });
+
+  persistAll();
+  closeSheet("recSheetScrim");
+  renderAll();
+  showSnackbar("Recurring schedule created");
+}
+
+function advanceDate(dateStr, freq) {
+  const d = new Date(dateStr + "T00:00:00");
+  if (freq === "weekly") d.setDate(d.getDate() + 7);
+  else d.setMonth(d.getMonth() + 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function postSingleRecurring(recId) {
+  const item = recurringItems.find(r => r.id === recId);
+  if (!item) return;
+
+  transactions = [{
+    id: "tx_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+    type: item.type,
+    amount: item.amount,
+    title: item.title,
+    category: item.category,
+    walletId: item.walletId || wallets[0].id,
+    date: todayStr(),
+    note: `Recurring (${item.freq})`
+  }, ...transactions];
+
+  item.nextDate = advanceDate(item.nextDate, item.freq);
+  persistAll();
+  renderAll();
+  showSnackbar(`Posted "${item.title}" to ledger`);
+}
+
+function postAllDueRecurring() {
+  const today = todayStr();
+  const due = recurringItems.filter(r => r.nextDate <= today);
+  if (!due.length) return;
+
+  for (const item of due) {
+    transactions = [{
+      id: "tx_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+      type: item.type,
+      amount: item.amount,
+      title: item.title,
+      category: item.category,
+      walletId: item.walletId || wallets[0].id,
+      date: today,
+      note: `Recurring (${item.freq})`
+    }, ...transactions];
+    item.nextDate = advanceDate(item.nextDate, item.freq);
+  }
+
+  persistAll();
+  renderAll();
+  showSnackbar(`Posted ${due.length} scheduled transaction(s)`);
+}
+
+function deleteRecurring(recId) {
+  openConfirmSheet("Delete Schedule", "Remove this recurring transaction schedule?", "Delete", () => {
+    recurringItems = recurringItems.filter(r => r.id !== recId);
+    persistAll();
+    renderAll();
+    showSnackbar("Schedule deleted");
+  });
+}
+
+function renderRecurring() {
+  document.getElementById("moreRecurringSub").textContent = `${recurringItems.length} active schedule${recurringItems.length === 1 ? "" : "s"}`;
+  const container = document.getElementById("recurringScheduleList");
+
+  if (!recurringItems.length) {
+    container.innerHTML = emptyHTML("No Recurring Schedules", "Create automated schedules for monthly rent, subscriptions, or salary.");
+    return;
+  }
+
+  container.innerHTML = recurringItems.map(r => {
+    const isInc = r.type === "income";
+    return `
+      <div class="m3-card">
+        <div class="flex-between">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0">
+            <div class="tx-leading">${catIconSvg(r.type, r.category)}</div>
+            <div style="min-width:0">
+              <div class="tx-name">${esc(r.title)}</div>
+              <div class="sub-note num">${esc(r.category)} · ${esc(getWalletName(r.walletId))} · ${r.freq === "weekly" ? "Weekly" : "Monthly"} · Next: ${esc(r.nextDate)}</div>
+            </div>
+          </div>
+          <div class="num ${isInc ? "positive" : "negative"}" style="font-weight:700">${isInc ? "+" : "−"}${money(r.amount)}</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button type="button" class="m3-btn-tonal ripple-host" style="flex:1;min-height:38px;font-size:12px" onclick="postSingleRecurring('${esc(r.id)}')">Log Now</button>
+          <button type="button" class="m3-btn-outlined ripple-host" style="min-height:38px;padding:0 14px;font-size:12px" onclick="deleteRecurring('${esc(r.id)}')">Remove</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ==========================================================================
+   4-DIGIT PIN, FORGOT PIN RECOVERY & AUTO-LOCK
+   ========================================================================== */
+function initPinGate() {
+  if (settings.pin) {
+    lockAppNow();
+  }
+}
+
+function lockAppNow() {
+  if (!settings.pin) return;
+  pinMode = "unlock";
+  pinBuffer = "";
+  document.getElementById("pinPromptTitle").textContent = "Enter Passcode";
+  document.getElementById("pinPromptSub").textContent = "Unlock Asbily Financial Ledger";
+  document.getElementById("forgotPinBtn").style.display = "inline-block";
+
+  const leftBtn = document.getElementById("pinLeftActionKey");
+  leftBtn.style.visibility = "hidden";
+
+  updatePinDots();
+  document.getElementById("pinLockScreen").classList.add("active");
+}
+
+function togglePinLockSetting(enabled) {
+  if (enabled) {
+    pinMode = "setup";
+    pinBuffer = "";
+    pinTempFirst = "";
+    document.getElementById("pinPromptTitle").textContent = "Create 4-Digit PIN";
+    document.getElementById("pinPromptSub").textContent = "Enter a new security passcode";
+    document.getElementById("forgotPinBtn").style.display = "none";
+
+    const leftBtn = document.getElementById("pinLeftActionKey");
+    leftBtn.style.visibility = "visible";
+    leftBtn.innerHTML = `<span style="font-size:13px">Cancel</span>`;
+    leftBtn.onclick = cancelPinSetup;
+
+    updatePinDots();
+    document.getElementById("pinLockScreen").classList.add("active");
+  } else {
+    settings.pin = "";
+    settings.secQuestion = "";
+    settings.secAnswer = "";
+    settings.autoLockMins = 0;
+    persistAll();
+    renderSettingsUI();
+    updateNotificationBadge();
+    showSnackbar("App PIN lock disabled");
+  }
+}
+
+function cancelPinSetup() {
+  document.getElementById("pinLockScreen").classList.remove("active");
+  renderSettingsUI();
+}
+
+function pressPinDigit(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots();
+
+  if (pinBuffer.length === 4) {
+    setTimeout(evaluatePinBuffer, 120);
+  }
+}
+
+function backspacePin() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updatePinDots();
+}
+
+function updatePinDots() {
+  const dots = document.querySelectorAll("#pinDotsContainer .pin-dot");
+  dots.forEach((dot, idx) => {
+    dot.classList.toggle("filled", idx < pinBuffer.length);
+  });
+}
+
+function evaluatePinBuffer() {
+  if (pinMode === "unlock") {
+    if (pinBuffer === settings.pin) {
+      document.getElementById("pinLockScreen").classList.remove("active");
+      pinBuffer = "";
+      resetAutoLockTimer();
+    } else {
+      pinBuffer = "";
+      updatePinDots();
+      document.getElementById("pinPromptSub").textContent = "Incorrect PIN. Try again.";
+    }
+  } else if (pinMode === "setup") {
+    pinTempFirst = pinBuffer;
+    pinBuffer = "";
+    pinMode = "confirm";
+    document.getElementById("pinPromptTitle").textContent = "Confirm 4-Digit PIN";
+    document.getElementById("pinPromptSub").textContent = "Re-enter passcode to confirm";
+    updatePinDots();
+  } else if (pinMode === "confirm") {
+    if (pinBuffer === pinTempFirst) {
+      pendingPinToSave = pinBuffer;
+      document.getElementById("pinLockScreen").classList.remove("active");
+      document.getElementById("secAnswerField").value = "";
+      openSheet("pinSetupSecurityScrim");
+    } else {
+      pinMode = "setup";
+      pinBuffer = "";
+      pinTempFirst = "";
+      document.getElementById("pinPromptTitle").textContent = "Create 4-Digit PIN";
+      document.getElementById("pinPromptSub").textContent = "Passcodes did not match. Start again.";
+      updatePinDots();
+    }
+  }
+}
+
+function saveSecurityRecovery(e) {
+  e.preventDefault();
+  const q = document.getElementById("secQuestionField").value;
+  const a = document.getElementById("secAnswerField").value.trim().toLowerCase();
+  if (!a) return;
+
+  settings.pin = pendingPinToSave;
+  settings.secQuestion = q;
+  settings.secAnswer = a;
+  pendingPinToSave = "";
+  persistAll();
+  closeSheet("pinSetupSecurityScrim");
+  renderSettingsUI();
+  updateNotificationBadge();
+  resetAutoLockTimer();
+  showSnackbar("PIN lock & recovery question saved");
+}
+
+function openPinRecoverySheet() {
+  const qBox = document.getElementById("recoveryQuestionBox");
+  if (settings.secQuestion && settings.secAnswer) {
+    qBox.style.display = "block";
+    document.getElementById("displaySecurityQuestion").textContent = settings.secQuestion;
+    document.getElementById("verifySecAnswerInput").value = "";
+  } else {
+    qBox.style.display = "none";
+  }
+  openSheet("pinRecoveryScrim");
+}
+
+function verifySecurityAnswer() {
+  const inputAns = document.getElementById("verifySecAnswerInput").value.trim().toLowerCase();
+  if (inputAns && inputAns === settings.secAnswer) {
+    settings.pin = "";
+    persistAll();
+    closeSheet("pinRecoveryScrim");
+    document.getElementById("pinLockScreen").classList.remove("active");
+    renderSettingsUI();
+    showSnackbar("Identity verified! PIN has been removed.");
+  } else {
+    showSnackbar("Incorrect security answer.");
+  }
+}
+
+function emergencyResetApp() {
+  openConfirmSheet(
+    "Factory Reset App",
+    "This will erase ALL transactions, wallets, and PIN lock permanently. Continue?",
+    "Erase & Reset",
+    () => {
+      localStorage.clear();
+      location.reload();
+    }
+  );
+}
+
+/* Auto-Lock Timer */
+function changeAutoLock() {
+  settings.autoLockMins = Number(document.getElementById("settingAutoLockSelect").value);
+  persistAll();
+  resetAutoLockTimer();
+  showSnackbar(settings.autoLockMins > 0 ? `Auto-lock set to ${settings.autoLockMins} min` : "Auto-lock disabled");
+}
+
+function resetAutoLockTimer() {
+  clearTimeout(idleTimer);
+  if (settings.pin && settings.autoLockMins > 0) {
+    idleTimer = setTimeout(() => {
+      if (!document.getElementById("pinLockScreen").classList.contains("active")) {
+        lockAppNow();
+      }
+    }, settings.autoLockMins * 60 * 1000);
+  }
+}
+
+["pointerdown", "keydown", "touchstart"].forEach(evt => {
+  document.addEventListener(evt, resetAutoLockTimer, { passive: true });
+});
+
+/* ==========================================================================
+   SETTINGS, THEME, ACCENT, PDF/CSV/JSON EXPORT & WIPE
+   ========================================================================== */
+function setTheme(dark) {
+  settings.dark = Boolean(dark);
+  persistAll();
+  renderSettingsUI();
+}
+
+function setAccent(accentName) {
+  settings.accent = accentName;
+  persistAll();
+  renderSettingsUI();
+  renderAnalytics();
+}
+
+function changeCurrency() {
+  settings.currency = document.getElementById("settingCurrencySelect").value;
+  persistAll();
+  renderAll();
+  showSnackbar(`Currency set to ${settings.currency}`);
+}
+
+function changeNumFormat() {
+  settings.numFormat = document.getElementById("settingNumFormatSelect").value;
+  persistAll();
+  renderAll();
+  showSnackbar("Number grouping format updated");
+}
+
+function renderSettingsUI() {
+  document.body.classList.toggle("dark", settings.dark);
+  document.body.setAttribute("data-accent", settings.accent);
+  document.getElementById("metaThemeColor").setAttribute("content", settings.dark ? "#0f1115" : "#f8f9fb");
+
+  document.getElementById("settingDarkSwitch").checked = settings.dark;
+  document.getElementById("settingCurrencySelect").value = settings.currency;
+  document.getElementById("settingNumFormatSelect").value = settings.numFormat;
+
+  const hasPin = Boolean(settings.pin);
+  document.getElementById("settingPinSwitch").checked = hasPin;
+  document.getElementById("topQuickLockBtn").style.display = hasPin ? "grid" : "none";
+  document.getElementById("autoLockSettingRow").style.display = hasPin ? "block" : "none";
+
+  document.getElementById("settingAutoLockSelect").value = String(settings.autoLockMins);
+  document.getElementById("pinStatusSub").textContent = hasPin ? "Active (4-digit passcode + recovery)" : "Protect local financial records";
+
+  document.querySelectorAll("#accentPickerGrid .accent-option").forEach(btn => {
+    btn.classList.toggle("selected", btn.dataset.accent === settings.accent);
+  });
+}
+
+function exportPDFSummary() {
+  showSnackbar("Preparing PDF Financial Summary...");
+  setTimeout(() => {
+    window.print();
+  }, 300);
+}
+
+function downloadBlob(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportCSV() {
+  if (!transactions.length) {
+    showSnackbar("No transactions to export");
+    return;
+  }
+  const rows = [["ID", "Type", "Amount", "Currency", "Title", "Category", "Wallet", "Date", "Note"]];
+  transactions.forEach(t => rows.push([
+    t.id, t.type, t.amount, settings.currency, t.title, t.category, getWalletName(t.walletId), t.date, t.note || ""
+  ]));
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+  downloadBlob("\uFEFF" + csv, `asbily-ledger-${todayStr()}.csv`, "text/csv;charset=utf-8");
+  showSnackbar("CSV spreadsheet exported");
+}
+
+function exportJSONBackup() {
+  const payload = {
+    app: "Asbily Mobile Finance Pro",
+    version: 4,
+    exportedAt: new Date().toISOString(),
+    transactions,
+    categories,
+    wallets,
+    recurringItems,
+    settings: { ...settings, pin: "", secAnswer: "" }
+  };
+  downloadBlob(JSON.stringify(payload, null, 2), `asbily-backup-${todayStr()}.json`, "application/json");
+  showSnackbar("JSON backup saved");
+}
+
+function importJSONBackup(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data || !Array.isArray(data.transactions) || !data.categories) throw new Error();
+      openConfirmSheet(
+        "Restore Backup",
+        `Import ${data.transactions.length} transaction(s) and replace current local data?`,
+        "Restore",
+        () => {
+          transactions = data.transactions;
+          categories = data.categories;
+          if (Array.isArray(data.wallets) && data.wallets.length) wallets = data.wallets;
+          recurringItems = Array.isArray(data.recurringItems) ? data.recurringItems : [];
+          if (data.settings) {
+            settings = {
+              ...settings,
+              ...data.settings,
+              pin: settings.pin,
+              secQuestion: settings.secQuestion,
+              secAnswer: settings.secAnswer
+            };
+          }
+          persistAll();
+          renderSettingsUI();
+          renderAll();
+          showSnackbar("Backup restored successfully");
+        }
+      );
+    } catch {
+      showSnackbar("Invalid backup file");
+    } finally {
+      e.target.value = "";
+    }
+  };
+  reader.readAsText(file);
+}
+
+function confirmWipeAll() {
+  openConfirmSheet(
+    "Wipe All Local Data",
+    "Permanently delete all transactions, recurring schedules, custom categories, and budgets? This cannot be undone.",
+    "Wipe Everything",
+    () => {
+      transactions = [];
+      categories = structuredClone(DEFAULT_CATS);
+      wallets = structuredClone(DEFAULT_WALLETS);
+      recurringItems = [];
+      settings = { ...settings, budget: 0, categoryBudgets: {} };
+      persistAll();
+      renderAll();
+      showSnackbar("All local data wiped");
+    }
+  );
+}
+
+function renderAll() {
+  renderHome();
+  renderActivity();
+  renderAnalytics();
+  renderBudget();
+  renderCategories();
+  renderRecurring();
+  renderWalletsManager();
+  updateNotificationBadge();
+}
+
+/* ==========================================================================
+   BOOT SEQUENCE
+   ========================================================================== */
+renderSettingsUI();
+initPinGate();
+renderAll();
+</script>
+</body>
+</html>
