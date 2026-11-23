@@ -3086,7 +3086,7 @@ body.dark .snackbar-action {
             Backup JSON
           </button>
         </div>
-        <button type="button" class="m3-btn-outlined ripple-host" style="width:100%;margin-bottom:10px" onclick="document.getElementById('restoreJsonInput').click()">
+        <button type="button" class="m3-btn-outlined ripple-host" style="width:100%;margin-bottom:10px" onclick="triggerRestoreBackup()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           Restore From JSON Backup
         </button>
@@ -7150,14 +7150,71 @@ function buildFinancialSummaryPDF() {
   return out;
 }
 
+function getAndroidBridge() {
+  try {
+    if (window.Android && typeof window.Android === "object") return window.Android;
+    if (window.AndroidInterface && typeof window.AndroidInterface === "object") return window.AndroidInterface;
+  } catch {}
+  return null;
+}
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+function base64ToUtf8(b64) {
+  const binary = atob(String(b64 || "").replace(/\s+/g, ""));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new TextDecoder().decode(bytes);
+}
+
+function saveViaAndroidCreateDocument(content, filename, type) {
+  const bridge = getAndroidBridge();
+  if (!bridge) return false;
+  const mimeType = String(type || "application/octet-stream").split(";")[0].trim();
+  const isBinary = content instanceof Uint8Array;
+  const textContent = isBinary ? "" : String(content ?? "");
+
+  try {
+    if (typeof bridge.createDocumentBase64 === "function") {
+      const bytes = isBinary ? content : new TextEncoder().encode(textContent);
+      bridge.createDocumentBase64(String(filename), mimeType, bytesToBase64(bytes));
+      return true;
+    }
+    if (typeof bridge.createDocument === "function") {
+      const payload = isBinary ? bytesToBase64(content) : textContent;
+      bridge.createDocument(String(filename), mimeType, payload);
+      return true;
+    }
+    if (typeof bridge.saveFile === "function") {
+      const payload = isBinary ? bytesToBase64(content) : textContent;
+      bridge.saveFile(String(filename), mimeType, payload);
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
 function exportPDFSummary() {
   haptic(10);
   try {
     const pdfBytes = buildFinancialSummaryPDF();
-    downloadBlob(pdfBytes, `asbily-financial-summary-${todayStr()}.pdf`, "application/pdf");
-    showSnackbar("PDF summary downloaded", "Print", () => {
-      try { window.print(); } catch {}
-    }, 4500);
+    const usedAndroid = downloadBlob(pdfBytes, `asbily-financial-summary-${todayStr()}.pdf`, "application/pdf");
+    if (usedAndroid) {
+      showSnackbar("Choose location to save PDF...");
+    } else {
+      showSnackbar("PDF summary downloaded", "Print", () => {
+        try { window.print(); } catch {}
+      }, 4500);
+    }
   } catch {
     showSnackbar("Opening print dialog...");
     setTimeout(() => {
@@ -7167,6 +7224,9 @@ function exportPDFSummary() {
 }
 
 function downloadBlob(content, filename, type) {
+  if (saveViaAndroidCreateDocument(content, filename, type)) {
+    return true;
+  }
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -7180,6 +7240,7 @@ function downloadBlob(content, filename, type) {
     a.remove();
     URL.revokeObjectURL(url);
   }, 15000);
+  return false;
 }
 
 function sanitizeCsvCell(v, numeric = false) {
@@ -7202,8 +7263,8 @@ function exportCSV() {
     t.id, t.type, Number(t.amount).toFixed(2), settings.currency, t.title, t.category, getWalletName(t.walletId), t.date, t.note || ""
   ]));
   const csv = rows.map((r, rIdx) => r.map((cell, cIdx) => sanitizeCsvCell(cell, rIdx > 0 && cIdx === 2)).join(",")).join("\r\n");
-  downloadBlob("\uFEFF" + csv, `asbily-ledger-${todayStr()}.csv`, "text/csv;charset=utf-8");
-  showSnackbar(`Exported ${transactions.length} record(s) to CSV`);
+  const usedAndroid = downloadBlob("\uFEFF" + csv, `asbily-ledger-${todayStr()}.csv`, "text/csv;charset=utf-8");
+  showSnackbar(usedAndroid ? "Choose location to save CSV..." : `Exported ${transactions.length} record(s) to CSV`);
 }
 
 function exportJSONBackup() {
@@ -7227,8 +7288,8 @@ function exportJSONBackup() {
     recurringItems,
     settings: { ...settings, pin: "", secQuestion: "", secAnswer: "" }
   };
-  downloadBlob(JSON.stringify(payload, null, 2), `asbily-backup-${todayStr()}.json`, "application/json;charset=utf-8");
-  showSnackbar("JSON backup saved");
+  const usedAndroid = downloadBlob(JSON.stringify(payload, null, 2), `asbily-backup-${todayStr()}.json`, "application/json;charset=utf-8");
+  showSnackbar(usedAndroid ? "Choose location to save backup..." : "JSON backup saved");
 }
 
 function normalizeRestoredTx(raw, fallbackWalletId) {
@@ -7249,6 +7310,117 @@ function normalizeRestoredTx(raw, fallbackWalletId) {
   };
 }
 
+function processImportedJSONText(rawText) {
+  try {
+    const data = JSON.parse(String(rawText || ""));
+    if (!data || !Array.isArray(data.transactions) || !data.categories || !Array.isArray(data.categories.income) || !Array.isArray(data.categories.expense)) {
+      throw new Error("Invalid backup structure");
+    }
+
+    const restoredWallets = (Array.isArray(data.wallets) && data.wallets.length)
+      ? data.wallets.filter(w => w && w.id && w.name).map(w => ({
+          id: String(w.id),
+          name: w.id === "wal_mfs" && w.name === "bKash / Nagad" ? "Mobile Banking" : String(w.name).slice(0, 28),
+          icon: ICONS[w.icon] ? w.icon : "wallet"
+        }))
+      : structuredClone(DEFAULT_WALLETS);
+    const fallbackWalId = restoredWallets[0]?.id || "wal_cash";
+
+    const restoredTx = data.transactions
+      .map(t => normalizeRestoredTx(t, fallbackWalId))
+      .filter(Boolean);
+
+    const restoredDeleted = Array.isArray(data.deletedTransactions)
+      ? data.deletedTransactions.map(t => {
+          const norm = normalizeRestoredTx(t, fallbackWalId);
+          return norm ? { ...norm, deletedAt: Number(t.deletedAt) || Date.now() } : null;
+        }).filter(Boolean)
+      : [];
+
+    const restoredCats = {
+      income: data.categories.income.length ? data.categories.income.filter(c => c && c.name).map(c => ({ name: String(c.name).slice(0, 28), icon: ICONS[c.icon] ? c.icon : "tag" })) : structuredClone(DEFAULT_CATS.income),
+      expense: data.categories.expense.length ? data.categories.expense.filter(c => c && c.name).map(c => ({ name: String(c.name).slice(0, 28), icon: ICONS[c.icon] ? c.icon : "tag" })) : structuredClone(DEFAULT_CATS.expense)
+    };
+    if (!restoredCats.income.length) restoredCats.income = structuredClone(DEFAULT_CATS.income);
+    if (!restoredCats.expense.length) restoredCats.expense = structuredClone(DEFAULT_CATS.expense);
+
+    const restoredRecurring = Array.isArray(data.recurringItems)
+      ? data.recurringItems.filter(r => r && r.id && Number(r.amount) > 0)
+      : [];
+
+    openConfirmSheet(
+      "Restore Backup",
+      `Import ${restoredTx.length} active record(s), ${restoredDeleted.length} deleted item(s), and ${restoredWallets.length} wallet(s)? Current local data will be replaced.`,
+      "Restore",
+      () => {
+        transactions = restoredTx;
+        deletedTransactions = restoredDeleted;
+        categories = restoredCats;
+        wallets = restoredWallets;
+        recurringItems = restoredRecurring;
+        if (data.settings && typeof data.settings === "object") {
+          settings = {
+            ...settings,
+            currency: SYMBOLS[data.settings.currency] ? data.settings.currency : settings.currency,
+            numFormat: ["bn", "en"].includes(data.settings.numFormat) ? data.settings.numFormat : settings.numFormat,
+            dark: data.settings.dark !== undefined ? Boolean(data.settings.dark) : settings.dark,
+            haptics: data.settings.haptics !== undefined ? Boolean(data.settings.haptics) : settings.haptics,
+            accent: ["obsidian", "emerald", "cobalt", "teal"].includes(data.settings.accent) ? data.settings.accent : settings.accent,
+            budget: Number.isFinite(Number(data.settings.budget)) && Number(data.settings.budget) >= 0 ? Number(data.settings.budget) : settings.budget,
+            categoryBudgets: data.settings.categoryBudgets && typeof data.settings.categoryBudgets === "object" ? data.settings.categoryBudgets : settings.categoryBudgets,
+            pin: settings.pin,
+            secQuestion: settings.secQuestion,
+            secAnswer: settings.secAnswer
+          };
+        }
+        persistAll();
+        renderSettingsUI();
+        renderAll();
+        showSnackbar(`Restored ${transactions.length} record(s)`);
+      }
+    );
+  } catch {
+    showSnackbar("Invalid JSON backup file");
+  }
+}
+
+function triggerRestoreBackup() {
+  haptic(8);
+  const bridge = getAndroidBridge();
+  try {
+    if (bridge && typeof bridge.openDocument === "function") {
+      bridge.openDocument("application/json");
+      return;
+    }
+    if (bridge && typeof bridge.openBackup === "function") {
+      bridge.openBackup();
+      return;
+    }
+  } catch {}
+  document.getElementById("restoreJsonInput").click();
+}
+
+window.onAndroidDocumentOpened = function (content, isBase64 = false) {
+  try {
+    const text = isBase64 ? base64ToUtf8(String(content || "")) : String(content || "");
+    if (!text.trim()) {
+      showSnackbar("Selected backup file is empty");
+      return;
+    }
+    processImportedJSONText(text);
+  } catch {
+    showSnackbar("Could not read selected backup file");
+  }
+};
+
+window.onAndroidDocumentSaved = function (success, message) {
+  if (success) {
+    showSnackbar(message || "Backup saved to device");
+  } else if (message) {
+    showSnackbar(message);
+  }
+};
+
 function importJSONBackup(e) {
   const file = e.target.files?.[0];
   if (!file) return;
@@ -7259,75 +7431,7 @@ function importJSONBackup(e) {
   };
   reader.onload = () => {
     try {
-      const data = JSON.parse(String(reader.result || ""));
-      if (!data || !Array.isArray(data.transactions) || !data.categories || !Array.isArray(data.categories.income) || !Array.isArray(data.categories.expense)) {
-        throw new Error("Invalid backup structure");
-      }
-
-      const restoredWallets = (Array.isArray(data.wallets) && data.wallets.length)
-        ? data.wallets.filter(w => w && w.id && w.name).map(w => ({
-            id: String(w.id),
-            name: w.id === "wal_mfs" && w.name === "bKash / Nagad" ? "Mobile Banking" : String(w.name).slice(0, 28),
-            icon: ICONS[w.icon] ? w.icon : "wallet"
-          }))
-        : structuredClone(DEFAULT_WALLETS);
-      const fallbackWalId = restoredWallets[0]?.id || "wal_cash";
-
-      const restoredTx = data.transactions
-        .map(t => normalizeRestoredTx(t, fallbackWalId))
-        .filter(Boolean);
-
-      const restoredDeleted = Array.isArray(data.deletedTransactions)
-        ? data.deletedTransactions.map(t => {
-            const norm = normalizeRestoredTx(t, fallbackWalId);
-            return norm ? { ...norm, deletedAt: Number(t.deletedAt) || Date.now() } : null;
-          }).filter(Boolean)
-        : [];
-
-      const restoredCats = {
-        income: data.categories.income.length ? data.categories.income.filter(c => c && c.name).map(c => ({ name: String(c.name).slice(0, 28), icon: ICONS[c.icon] ? c.icon : "tag" })) : structuredClone(DEFAULT_CATS.income),
-        expense: data.categories.expense.length ? data.categories.expense.filter(c => c && c.name).map(c => ({ name: String(c.name).slice(0, 28), icon: ICONS[c.icon] ? c.icon : "tag" })) : structuredClone(DEFAULT_CATS.expense)
-      };
-      if (!restoredCats.income.length) restoredCats.income = structuredClone(DEFAULT_CATS.income);
-      if (!restoredCats.expense.length) restoredCats.expense = structuredClone(DEFAULT_CATS.expense);
-
-      const restoredRecurring = Array.isArray(data.recurringItems)
-        ? data.recurringItems.filter(r => r && r.id && Number(r.amount) > 0)
-        : [];
-
-      openConfirmSheet(
-        "Restore Backup",
-        `Import ${restoredTx.length} active record(s), ${restoredDeleted.length} deleted item(s), and ${restoredWallets.length} wallet(s)? Current local data will be replaced.`,
-        "Restore",
-        () => {
-          transactions = restoredTx;
-          deletedTransactions = restoredDeleted;
-          categories = restoredCats;
-          wallets = restoredWallets;
-          recurringItems = restoredRecurring;
-          if (data.settings && typeof data.settings === "object") {
-            settings = {
-              ...settings,
-              currency: SYMBOLS[data.settings.currency] ? data.settings.currency : settings.currency,
-              numFormat: ["bn", "en"].includes(data.settings.numFormat) ? data.settings.numFormat : settings.numFormat,
-              dark: data.settings.dark !== undefined ? Boolean(data.settings.dark) : settings.dark,
-              haptics: data.settings.haptics !== undefined ? Boolean(data.settings.haptics) : settings.haptics,
-              accent: ["obsidian", "emerald", "cobalt", "teal"].includes(data.settings.accent) ? data.settings.accent : settings.accent,
-              budget: Number.isFinite(Number(data.settings.budget)) && Number(data.settings.budget) >= 0 ? Number(data.settings.budget) : settings.budget,
-              categoryBudgets: data.settings.categoryBudgets && typeof data.settings.categoryBudgets === "object" ? data.settings.categoryBudgets : settings.categoryBudgets,
-              pin: settings.pin,
-              secQuestion: settings.secQuestion,
-              secAnswer: settings.secAnswer
-            };
-          }
-          persistAll();
-          renderSettingsUI();
-          renderAll();
-          showSnackbar(`Restored ${transactions.length} record(s)`);
-        }
-      );
-    } catch {
-      showSnackbar("Invalid JSON backup file");
+      processImportedJSONText(String(reader.result || ""));
     } finally {
       e.target.value = "";
     }
