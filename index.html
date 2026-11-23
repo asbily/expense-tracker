@@ -13,15 +13,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" id="metaThemeColor" content="#f8f9fb">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Asbily">
 <title>Asbily Expense Tracker</title>
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" type="image/png" sizes="192x192" href="/public/icons/icon-192.png">
-<link rel="icon" type="image/jpeg" sizes="2160x2160" href="/asbily-logo.jpg">
-<link rel="apple-touch-icon" sizes="180x180" href="/public/icons/apple-touch-icon.png">
+<link rel="icon" type="image/jpeg" sizes="2160x2160" href="./asbily-logo.jpg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2340,7 +2333,7 @@ body.dark .snackbar-action {
      ======================================================================== -->
 <div class="pin-lock-screen" id="pinLockScreen" role="dialog" aria-modal="true" aria-label="Security Passcode">
   <div class="brand-emblem" style="width:54px;height:54px;border-radius:15px;margin-bottom:14px;background:#000000;border:1px solid var(--md-outline-variant)">
-    <img src="/asbily-logo.jpg" alt="Asbily Logo" width="2160" height="2160">
+    <img src="./asbily-logo.jpg" alt="Asbily Logo" width="2160" height="2160">
   </div>
   <h2 style="font-size:19px;font-weight:700" id="pinPromptTitle">Enter Passcode</h2>
   <p class="sub-note" id="pinPromptSub" style="margin-top:4px;text-align:center">Unlock Asbily Financial Ledger</p>
@@ -2392,7 +2385,7 @@ body.dark .snackbar-action {
           </svg>
         </button>
         <div class="brand-emblem" id="topBrandLogo">
-          <img src="/asbily-logo.jpg" alt="Asbily Logo" width="2160" height="2160" decoding="sync" loading="eager" fetchpriority="high">
+          <img src="./asbily-logo.jpg" alt="Asbily Logo" width="2160" height="2160" decoding="sync" loading="eager" fetchpriority="high">
         </div>
         <span class="app-bar-title" id="topAppBarTitle">Asbily</span>
       </div>
@@ -2966,29 +2959,6 @@ body.dark .snackbar-action {
         </div>
       </div>
 
-      <div id="pwaInstallCard" style="display:none">
-        <div class="section-header">
-          <h2 class="section-title">Android App Installation</h2>
-        </div>
-        <div class="m3-card">
-          <div class="setting-row">
-            <div class="setting-leading">
-              <div class="setting-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-              </div>
-              <div>
-                <div style="font-size:13.5px;font-weight:600">Install Asbily App</div>
-                <div class="sub-note" id="pwaInstallDesc">Add to your Android home screen for full-screen app mode & offline access</div>
-              </div>
-            </div>
-          </div>
-          <button type="button" class="m3-btn-filled ripple-host" id="pwaInstallBtn" style="width:100%;margin-top:12px" onclick="triggerPWAInstall()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span id="pwaInstallBtnLabel">Install App</span>
-          </button>
-        </div>
-      </div>
-
       <div class="section-header">
         <h2 class="section-title">Reports, Data & Backup</h2>
       </div>
@@ -3110,7 +3080,7 @@ body.dark .snackbar-action {
     <section class="view-section" id="view-about">
       <div class="about-hero">
         <div class="about-logo-frame">
-          <img src="/asbily-logo.jpg" alt="Asbily Logo" width="2160" height="2160">
+          <img src="./asbily-logo.jpg" alt="Asbily Logo" width="2160" height="2160">
         </div>
         <h2 class="about-app-name">Expense</h2>
         <div class="about-byline">by Asbily</div>
@@ -3153,7 +3123,7 @@ body.dark .snackbar-action {
           </div>
           <div class="tx-center">
             <div class="tx-name">Privacy Policy</div>
-            <div class="tx-sub">/expense-tracker/privacy</div>
+            <div class="tx-sub">platforms.asbily.com/expense-tracker/privacy</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
@@ -3166,7 +3136,7 @@ body.dark .snackbar-action {
           </div>
           <div class="tx-center">
             <div class="tx-name">Terms of Service</div>
-            <div class="tx-sub">/expense-tracker/terms</div>
+            <div class="tx-sub">platforms.asbily.com/expense-tracker/terms</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
@@ -3179,7 +3149,7 @@ body.dark .snackbar-action {
           </div>
           <div class="tx-center">
             <div class="tx-name">Asbily Licenses</div>
-            <div class="tx-sub">/expense-tracker/licenses</div>
+            <div class="tx-sub">platforms.asbily.com/expense-tracker/licenses</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
@@ -3192,7 +3162,7 @@ body.dark .snackbar-action {
           </div>
           <div class="tx-center">
             <div class="tx-name">Open Source Licenses</div>
-            <div class="tx-sub">/expense-tracker/open-source-licenses</div>
+            <div class="tx-sub">platforms.asbily.com/expense-tracker/open-source-licenses</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
@@ -3208,7 +3178,7 @@ body.dark .snackbar-action {
           </div>
           <div class="tx-center">
             <div class="tx-name">Official Website</div>
-            <div class="tx-sub">/expense-tracker/</div>
+            <div class="tx-sub">platforms.asbily.com/expense-tracker/</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
@@ -3239,23 +3209,23 @@ body.dark .snackbar-action {
         </div>
         <div class="about-url-row ripple-host" onclick="openAboutDoc('website')">
           <span class="about-url-name">Product</span>
-          <span class="about-url-path">/expense-tracker/</span>
+          <span class="about-url-path">platforms.asbily.com/expense-tracker/</span>
         </div>
         <div class="about-url-row ripple-host" onclick="openAboutDoc('privacy')">
           <span class="about-url-name">Privacy</span>
-          <span class="about-url-path">/expense-tracker/privacy</span>
+          <span class="about-url-path">platforms.asbily.com/expense-tracker/privacy</span>
         </div>
         <div class="about-url-row ripple-host" onclick="openAboutDoc('terms')">
           <span class="about-url-name">Terms</span>
-          <span class="about-url-path">/expense-tracker/terms</span>
+          <span class="about-url-path">platforms.asbily.com/expense-tracker/terms</span>
         </div>
         <div class="about-url-row ripple-host" onclick="openAboutDoc('licenses')">
           <span class="about-url-name">Asbily Licenses</span>
-          <span class="about-url-path">/expense-tracker/licenses</span>
+          <span class="about-url-path">platforms.asbily.com/expense-tracker/licenses</span>
         </div>
         <div class="about-url-row ripple-host" onclick="openAboutDoc('open-source-licenses')">
           <span class="about-url-name">Open Source Licenses</span>
-          <span class="about-url-path">/expense-tracker/open-source-licenses</span>
+          <span class="about-url-path">platforms.asbily.com/expense-tracker/open-source-licenses</span>
         </div>
       </div>
     </section>
@@ -3646,7 +3616,7 @@ body.dark .snackbar-action {
     <div id="aboutDocContent" style="margin-bottom:16px"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <button type="button" class="m3-btn-outlined ripple-host" id="aboutDocCopyBtn">Copy URL</button>
-      <a class="m3-btn-filled ripple-host" id="aboutDocOpenLink" href="/expense-tracker/">Open Page</a>
+      <a class="m3-btn-filled ripple-host" id="aboutDocOpenLink" href="https://platforms.asbily.com/expense-tracker/" target="_blank" rel="noopener noreferrer">Open Page</a>
     </div>
   </div>
 </div>
@@ -3768,7 +3738,6 @@ let pendingPinToSave = "";
 let snackTimer = null;
 let idleTimer = null;
 let lastBackPressTime = 0;
-let deferredInstallPrompt = null;
 let lastSwipeOrHoldAt = 0;
 let notifFilterTab = "all";
 
@@ -4421,7 +4390,19 @@ function getActiveNotifications() {
   return list;
 }
 
+function hasAndroidNotifBridge() {
+  try {
+    return Boolean(
+      (window.Android && typeof window.Android.showNotification === "function") ||
+      (window.AndroidInterface && typeof window.AndroidInterface.showNotification === "function")
+    );
+  } catch {
+    return false;
+  }
+}
+
 function getMobileNotifPermission() {
+  if (hasAndroidNotifBridge()) return "granted";
   if (typeof window === "undefined" || !("Notification" in window)) return "unsupported";
   return Notification.permission;
 }
@@ -4465,10 +4446,24 @@ async function sendMobileSystemNotification(title, body, opts = {}) {
     writeSentMobileAlertsMap(sentMap);
   }
 
+  const safeTitle = String(title || "Asbily Alert");
+  const safeBody = String(body || "").slice(0, 260);
+
+  try {
+    if (window.Android && typeof window.Android.showNotification === "function") {
+      window.Android.showNotification(safeTitle, safeBody, String(opts.view || "home"), String(opts.action || ""));
+      return true;
+    }
+    if (window.AndroidInterface && typeof window.AndroidInterface.showNotification === "function") {
+      window.AndroidInterface.showNotification(safeTitle, safeBody, String(opts.view || "home"), String(opts.action || ""));
+      return true;
+    }
+  } catch {}
+
   const notifOptions = {
-    body: String(body || "").slice(0, 260),
-    icon: "/public/icons/icon-192.png",
-    badge: "/public/icons/icon-192.png",
+    body: safeBody,
+    icon: "./asbily-logo.jpg",
+    badge: "./asbily-logo.jpg",
     tag: opts.tag || "asbily-alert",
     renotify: true,
     vibrate: opts.vibrate || [140, 60, 140],
@@ -4479,19 +4474,8 @@ async function sendMobileSystemNotification(title, body, opts = {}) {
   };
 
   try {
-    if ("serviceWorker" in navigator) {
-      const reg = (await navigator.serviceWorker.getRegistration()) ||
-        (await Promise.race([
-          navigator.serviceWorker.ready,
-          new Promise(resolve => setTimeout(() => resolve(null), 1500))
-        ]));
-      if (reg && typeof reg.showNotification === "function") {
-        await reg.showNotification(String(title || "Asbily Alert"), notifOptions);
-        return true;
-      }
-    }
     if (typeof Notification === "function") {
-      const n = new Notification(String(title || "Asbily Alert"), notifOptions);
+      const n = new Notification(safeTitle, notifOptions);
       n.onclick = () => {
         try { window.focus(); } catch {}
         if (notifOptions.data.action === "openNotifs") openNotificationsSheet();
@@ -6798,8 +6782,6 @@ function renderSettingsUI() {
     testNotifBtn.textContent = (perm === "granted" && settings.mobileNotifs) ? "Send Test" : "Allow & Test";
     testNotifBtn.disabled = perm === "unsupported";
   }
-
-  updatePWAInstallUI();
 }
 
 function pdfSafeText(str) {
@@ -7438,74 +7420,8 @@ function renderAll() {
 })();
 
 /* ==========================================================================
-   PWA INSTALLABILITY, SERVICE WORKER, OFFLINE STATUS & APP SHORTCUTS
+   OFFLINE STATUS, ANDROID BRIDGE & APP LAUNCH SHORTCUTS
    ========================================================================== */
-function isRunningStandalone() {
-  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-}
-
-function isIOSDevice() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent);
-}
-
-function updatePWAInstallUI() {
-  const card = document.getElementById("pwaInstallCard");
-  const desc = document.getElementById("pwaInstallDesc");
-  const btnLabel = document.getElementById("pwaInstallBtnLabel");
-  if (!card) return;
-
-  if (isRunningStandalone()) {
-    card.style.display = "none";
-    return;
-  }
-
-  if (deferredInstallPrompt) {
-    card.style.display = "block";
-    if (desc) desc.textContent = "Install Asbily on your Android home screen for full-screen native app mode & offline access.";
-    if (btnLabel) btnLabel.textContent = "Install Android App";
-  } else if (isIOSDevice()) {
-    card.style.display = "block";
-    if (desc) desc.textContent = "Tap Share in Safari and select 'Add to Home Screen' for full-screen app mode.";
-    if (btnLabel) btnLabel.textContent = "How to Install on iOS";
-  } else {
-    card.style.display = "none";
-  }
-}
-
-async function triggerPWAInstall() {
-  haptic(10);
-  if (deferredInstallPrompt) {
-    deferredInstallPrompt.prompt();
-    const choice = await deferredInstallPrompt.userChoice;
-    if (choice?.outcome === "accepted") {
-      deferredInstallPrompt = null;
-      updatePWAInstallUI();
-      showSnackbar("Asbily installed to your device");
-    }
-    return;
-  }
-  if (isIOSDevice()) {
-    openConfirmSheet(
-      "Add to Home Screen",
-      "In Safari, tap the Share button at the bottom of your screen, then choose 'Add to Home Screen'.",
-      "Got It",
-      () => {}
-    );
-  }
-}
-
-window.addEventListener("beforeinstallprompt", e => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  updatePWAInstallUI();
-});
-
-window.addEventListener("appinstalled", () => {
-  deferredInstallPrompt = null;
-  updatePWAInstallUI();
-  showSnackbar("App installed successfully");
-});
-
 function syncOfflineBanner() {
   const banner = document.getElementById("offlineBanner");
   if (banner) banner.style.display = navigator.onLine ? "none" : "flex";
@@ -7514,23 +7430,16 @@ function syncOfflineBanner() {
 window.addEventListener("online", syncOfflineBanner);
 window.addEventListener("offline", syncOfflineBanner);
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
-  });
-  navigator.serviceWorker.addEventListener("message", (event) => {
-    const msg = event.data;
-    if (!msg || msg.type !== "OPEN_NOTIF_TARGET") return;
-    const pinLocked = document.getElementById("pinLockScreen")?.classList.contains("active");
-    if (pinLocked) return;
-    if (msg.view && VIEW_TITLES[msg.view]) {
-      switchView(msg.view, { ensureMoreParent: SUB_VIEWS.includes(msg.view) });
-    }
-    if (msg.action === "openNotifs") {
-      openNotificationsSheet();
-    }
-  });
-}
+window.openAsbilyNotifTarget = function (view, action) {
+  const pinLocked = document.getElementById("pinLockScreen")?.classList.contains("active");
+  if (pinLocked) return;
+  if (view && VIEW_TITLES[view]) {
+    switchView(view, { ensureMoreParent: SUB_VIEWS.includes(view) });
+  }
+  if (action === "openNotifs") {
+    openNotificationsSheet();
+  }
+};
 
 function handleLaunchShortcuts() {
   const params = new URLSearchParams(location.search);
@@ -7538,6 +7447,21 @@ function handleLaunchShortcuts() {
   const viewParam = params.get("view");
   const notifParam = params.get("notif");
   const pinLocked = document.getElementById("pinLockScreen")?.classList.contains("active");
+
+  const pathClean = location.pathname.replace(/\/+$/, "");
+  const routeDocMap = {
+    "/expense-tracker": "website",
+    "/expense-tracker/privacy": "privacy",
+    "/expense-tracker/terms": "terms",
+    "/expense-tracker/licenses": "licenses",
+    "/expense-tracker/open-source-licenses": "open-source-licenses"
+  };
+
+  if (routeDocMap[pathClean]) {
+    switchView("about", { ensureMoreParent: true });
+    if (!pinLocked) openAboutDoc(routeDocMap[pathClean]);
+    return;
+  }
 
   if (viewParam && VIEW_TITLES[viewParam]) {
     switchView(viewParam, { ensureMoreParent: SUB_VIEWS.includes(viewParam) });
@@ -7555,11 +7479,11 @@ function handleLaunchShortcuts() {
 const ABOUT_DOCS = {
   website: {
     title: "Official Website · Product",
-    subtitle: "/expense-tracker/",
+    subtitle: "https://platforms.asbily.com/expense-tracker/",
     copyLabel: "Copy Page URL",
-    copyValue: "/expense-tracker/",
+    copyValue: "https://platforms.asbily.com/expense-tracker/",
     openLabel: "Open Page",
-    openHref: "/expense-tracker/",
+    openHref: "https://platforms.asbily.com/expense-tracker/",
     sections: [
       {
         heading: "Asbily Expense Tracker",
@@ -7567,17 +7491,17 @@ const ABOUT_DOCS = {
       },
       {
         heading: "Canonical Website URL",
-        body: "Product page path: /expense-tracker/"
+        body: "Product page URL: https://platforms.asbily.com/expense-tracker/"
       }
     ]
   },
   privacy: {
     title: "Privacy Policy",
-    subtitle: "/expense-tracker/privacy",
+    subtitle: "https://platforms.asbily.com/expense-tracker/privacy",
     copyLabel: "Copy Page URL",
-    copyValue: "/expense-tracker/privacy",
+    copyValue: "https://platforms.asbily.com/expense-tracker/privacy",
     openLabel: "Open Page",
-    openHref: "/expense-tracker/privacy",
+    openHref: "https://platforms.asbily.com/expense-tracker/privacy",
     sections: [
       {
         heading: "Local-First Ledger Storage",
@@ -7591,11 +7515,11 @@ const ABOUT_DOCS = {
   },
   terms: {
     title: "Terms of Service",
-    subtitle: "/expense-tracker/terms",
+    subtitle: "https://platforms.asbily.com/expense-tracker/terms",
     copyLabel: "Copy Page URL",
-    copyValue: "/expense-tracker/terms",
+    copyValue: "https://platforms.asbily.com/expense-tracker/terms",
     openLabel: "Open Page",
-    openHref: "/expense-tracker/terms",
+    openHref: "https://platforms.asbily.com/expense-tracker/terms",
     sections: [
       {
         heading: "Usage & Personal Bookkeeping",
@@ -7609,11 +7533,11 @@ const ABOUT_DOCS = {
   },
   licenses: {
     title: "Asbily Licenses",
-    subtitle: "/expense-tracker/licenses",
+    subtitle: "https://platforms.asbily.com/expense-tracker/licenses",
     copyLabel: "Copy Page URL",
-    copyValue: "/expense-tracker/licenses",
+    copyValue: "https://platforms.asbily.com/expense-tracker/licenses",
     openLabel: "Open Page",
-    openHref: "/expense-tracker/licenses",
+    openHref: "https://platforms.asbily.com/expense-tracker/licenses",
     sections: [
       {
         heading: "Asbily Platforms Brand & App License",
@@ -7627,19 +7551,19 @@ const ABOUT_DOCS = {
   },
   "open-source-licenses": {
     title: "Open Source Licenses",
-    subtitle: "/expense-tracker/open-source-licenses",
+    subtitle: "https://platforms.asbily.com/expense-tracker/open-source-licenses",
     copyLabel: "Copy Page URL",
-    copyValue: "/expense-tracker/open-source-licenses",
+    copyValue: "https://platforms.asbily.com/expense-tracker/open-source-licenses",
     openLabel: "Open Page",
-    openHref: "/expense-tracker/open-source-licenses",
+    openHref: "https://platforms.asbily.com/expense-tracker/open-source-licenses",
     sections: [
-      {
-        heading: "Express (MIT License)",
-        body: "Serves the local web runtime and /expense-tracker/* legal and product pages under the MIT License."
-      },
       {
         heading: "Plus Jakarta Sans (SIL OFL 1.1)",
         body: "Interface typography uses Plus Jakarta Sans licensed under the SIL Open Font License 1.1."
+      },
+      {
+        heading: "SVG System & Material Design 3 Patterns",
+        body: "Geometric vector icons and Material 3-inspired interface tokens are implemented directly with inline SVG and standard CSS without external runtime telemetry."
       }
     ]
   },
@@ -7695,6 +7619,13 @@ function openAboutDoc(key) {
   const openLink = document.getElementById("aboutDocOpenLink");
   openLink.textContent = doc.openLabel;
   openLink.href = doc.openHref;
+  if (doc.openHref.startsWith("mailto:")) {
+    openLink.removeAttribute("target");
+    openLink.removeAttribute("rel");
+  } else {
+    openLink.target = "_blank";
+    openLink.rel = "noopener noreferrer";
+  }
 
   openSheet("aboutDocSheetScrim");
 }
