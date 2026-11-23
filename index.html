@@ -2739,7 +2739,7 @@ body.dark .snackbar-action {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <input class="m3-input" id="ledgerSearchInput" placeholder="Search title, category, wallet, or note..." oninput="renderActivity()">
+        <input class="m3-input" id="ledgerSearchInput" placeholder="Search title, category, wallet, or note..." oninput="scheduleActivitySearch()">
       </div>
 
       <!-- Horizontal Filter Chips -->
@@ -3929,8 +3929,24 @@ function readSettings() {
   }
 }
 
+function isStorageAvailable() {
+  try {
+    if (typeof localStorage === "undefined") return false;
+    const probe = "__asbily_storage_probe__";
+    localStorage.setItem(probe, "1");
+    localStorage.removeItem(probe);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function persistAll() {
   try {
+    if (typeof localStorage === "undefined") {
+      showSnackbar("Storage unavailable.");
+      return false;
+    }
     localStorage.setItem(KEYS.TX, JSON.stringify(transactions));
     localStorage.setItem(KEYS.TRASH, JSON.stringify(deletedTransactions));
     localStorage.setItem(KEYS.CAT, JSON.stringify(categories));
@@ -3938,8 +3954,9 @@ function persistAll() {
     localStorage.setItem(KEYS.WAL, JSON.stringify(wallets));
     localStorage.setItem(KEYS.SET, JSON.stringify(settings));
     return true;
-  } catch {
-    showSnackbar("Device storage full. Unable to save changes.");
+  } catch (err) {
+    const isQuota = err && (err.name === "QuotaExceededError" || err.code === 22 || err.code === 1014);
+    showSnackbar(isQuota ? "Storage unavailable. Device storage is full." : "Storage unavailable.");
     return false;
   }
 }
@@ -4042,6 +4059,12 @@ function closeSheet(scrimId, opts = {}) {
   }
   if (scrimId === "txSheetScrim") editingTxId = null;
   if (scrimId === "catSheetScrim") editingCatName = null;
+  if (scrimId === "pinSetupSecurityScrim" && pendingPinToSave) {
+    pendingPinToSave = "";
+    pinBuffer = "";
+    pinTempFirst = "";
+    renderSettingsUI();
+  }
 
   if (wasOpen && !opts.fromPopstate && history.state && history.state.kind === "sheet" && history.state.sheet === scrimId) {
     pendingSheetPop = scrimId;
@@ -4082,15 +4105,104 @@ function esc(str) {
   }[c]));
 }
 
-function todayStr() {
-  const d = new Date();
+function jsAttr(val) {
+  return esc(JSON.stringify(String(val ?? "")));
+}
+
+function uid(prefix = "tx") {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function formatLocalDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function formatDeletedDate(val) {
+  if (!val) return "";
+  if (typeof val === "number" && Number.isFinite(val)) {
+    const dt = new Date(val);
+    return isNaN(dt.getTime()) ? "" : formatLocalDate(dt);
+  }
+  const s = String(val);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const num = Number(s);
+  if (Number.isFinite(num) && num > 0) {
+    const dt = new Date(num);
+    return isNaN(dt.getTime()) ? "" : formatLocalDate(dt);
+  }
+  return "";
+}
+
+function todayStr() {
+  return formatLocalDate(new Date());
 }
 
 function yesterdayStr() {
   const d = new Date();
   d.setDate(d.getDate() - 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return formatLocalDate(d);
+}
+
+function buildTxAggregates(curMonth = todayStr().slice(0, 7), cutoff30 = null) {
+  if (!cutoff30) {
+    const d30 = new Date();
+    d30.setDate(d30.getDate() - 30);
+    cutoff30 = formatLocalDate(d30);
+  }
+  const defaultWalId = (wallets[0] && wallets[0].id) ? wallets[0].id : "wal_cash";
+  let allIn = 0;
+  let allOut = 0;
+  let monthIn = 0;
+  let monthOut = 0;
+  let expense30 = 0;
+  const walletStats = Object.create(null);
+  const catCounts = Object.create(null);
+  const expenseCatTotals = Object.create(null);
+  const curMonthCatExpense = Object.create(null);
+
+  for (let i = 0; i < transactions.length; i++) {
+    const t = transactions[i];
+    if (!t) continue;
+    const amt = Number(t.amount) || 0;
+    const isInc = t.type === "income";
+    const dateStr = String(t.date || "");
+    const inCurMonth = dateStr.startsWith(curMonth);
+    const wId = t.walletId || defaultWalId;
+
+    if (!walletStats[wId]) walletStats[wId] = { inc: 0, exp: 0, count: 0 };
+    walletStats[wId].count += 1;
+
+    const catKey = `${t.type || "expense"}:${t.category || ""}`;
+    catCounts[catKey] = (catCounts[catKey] || 0) + 1;
+
+    if (isInc) {
+      allIn += amt;
+      if (inCurMonth) monthIn += amt;
+      walletStats[wId].inc += amt;
+    } else {
+      allOut += amt;
+      if (inCurMonth) {
+        monthOut += amt;
+        curMonthCatExpense[t.category] = (curMonthCatExpense[t.category] || 0) + amt;
+      }
+      if (dateStr >= cutoff30) expense30 += amt;
+      expenseCatTotals[t.category] = (expenseCatTotals[t.category] || 0) + amt;
+      walletStats[wId].exp += amt;
+    }
+  }
+
+  return {
+    defaultWalId,
+    allIn,
+    allOut,
+    monthIn,
+    monthOut,
+    expense30,
+    walletStats,
+    catCounts,
+    expenseCatTotals,
+    curMonthCatExpense
+  };
 }
 
 function getOffsetMonthInfo(offset) {
@@ -4283,50 +4395,25 @@ function handleNotifAction(idx) {
   }
 }
 
-function getFinancialAlertState() {
+function getFinancialAlertState(preAgg = null) {
   const { ym: curMonth, label: curLabel } = getOffsetMonthInfo(0);
+  const agg = preAgg || buildTxAggregates(curMonth);
 
-  let monthIn = 0;
-  let monthOut = 0;
-  let allIn = 0;
-  let allOut = 0;
-
-  transactions.forEach(t => {
-    const amt = Number(t.amount) || 0;
-    if (t.type === "income") {
-      allIn += amt;
-      if (t.date.startsWith(curMonth)) monthIn += amt;
-    } else {
-      allOut += amt;
-      if (t.date.startsWith(curMonth)) monthOut += amt;
-    }
-  });
-
-  const monthNet = monthIn - monthOut;
-  const allNet = allIn - allOut;
-  const monthMarginPct = monthIn > 0 ? (monthNet / monthIn) * 100 : (monthNet < 0 ? -100 : 0);
-  const allMarginPct = allIn > 0 ? (allNet / allIn) * 100 : (allNet < 0 ? -100 : 0);
+  const monthNet = agg.monthIn - agg.monthOut;
+  const allNet = agg.allIn - agg.allOut;
+  const monthMarginPct = agg.monthIn > 0 ? (monthNet / agg.monthIn) * 100 : (monthNet < 0 ? -100 : 0);
+  const allMarginPct = agg.allIn > 0 ? (allNet / agg.allIn) * 100 : (allNet < 0 ? -100 : 0);
 
   const walletAlerts = [];
   wallets.forEach(w => {
-    let wIn = 0;
-    let wOut = 0;
-    let count = 0;
-    transactions.forEach(t => {
-      const wId = t.walletId || wallets[0].id;
-      if (wId === w.id) {
-        count += 1;
-        if (t.type === "income") wIn += Number(t.amount) || 0;
-        else wOut += Number(t.amount) || 0;
-      }
-    });
-    if (count > 0) {
-      const bal = wIn - wOut;
-      const lowLimit = wIn > 0 ? Math.max(500, wIn * 0.15) : 500;
+    const ws = agg.walletStats[w.id];
+    if (ws && ws.count > 0) {
+      const bal = ws.inc - ws.exp;
+      const lowLimit = ws.inc > 0 ? Math.max(500, ws.inc * 0.15) : 500;
       if (bal < 0) {
-        walletAlerts.push({ id: w.id, name: w.name, bal, wIn, status: "loss" });
+        walletAlerts.push({ id: w.id, name: w.name, bal, wIn: ws.inc, status: "loss" });
       } else if (bal <= lowLimit) {
-        walletAlerts.push({ id: w.id, name: w.name, bal, wIn, status: "low" });
+        walletAlerts.push({ id: w.id, name: w.name, bal, wIn: ws.inc, status: "low" });
       }
     }
   });
@@ -4335,12 +4422,12 @@ function getFinancialAlertState() {
     curMonth,
     curLabel,
     hasTx: transactions.length > 0,
-    monthIn,
-    monthOut,
+    monthIn: agg.monthIn,
+    monthOut: agg.monthOut,
     monthNet,
     monthMarginPct,
-    allIn,
-    allOut,
+    allIn: agg.allIn,
+    allOut: agg.allOut,
     allNet,
     allMarginPct,
     walletAlerts
@@ -4886,7 +4973,7 @@ function renderNotifItemCard(n) {
     actionHtml += `<button type="button" class="text-action-btn" style="padding:0;min-height:30px;margin-top:4px" onclick="handleNotifAction(${n._idx})">${esc(n.actionLabel)} →</button>`;
   }
   if (n.isRemote) {
-    actionHtml += `<button type="button" class="text-action-btn" style="padding:0;min-height:30px;margin-top:4px;color:var(--md-on-surface-variant)" onclick="dismissFirebaseNotif('${esc(n.id)}')">Dismiss</button>`;
+    actionHtml += `<button type="button" class="text-action-btn" style="padding:0;min-height:30px;margin-top:4px;color:var(--md-on-surface-variant)" onclick="dismissFirebaseNotif(${jsAttr(n.id)})">Dismiss</button>`;
   }
 
   const timeStr = n.createdAt ? formatNotifTime(n.createdAt) : "";
@@ -5386,10 +5473,16 @@ function renderHome() {
   document.getElementById("heroExpenseSub").textContent = `${pTotals.expenseCount} entr${pTotals.expenseCount === 1 ? "y" : "ies"}${totalFlow > 0 ? ` · ${outShare}%` : ""}`;
   document.getElementById("heroTxCaption").textContent = `${periodTxs.length} ${periodTxs.length === 1 ? "ENTRY" : "ENTRIES"}`;
 
+  const curCalendarMonth = todayStr().slice(0, 7);
+  const d30 = new Date();
+  d30.setDate(d30.getDate() - 30);
+  const cutoff30 = formatLocalDate(d30);
+  const agg = buildTxAggregates(curCalendarMonth, cutoff30);
+
   // Executive Deficit / Low-Balance Status Strip (Monochrome — no red warning)
   const lossBanner = document.getElementById("homeLossAlertBanner");
   if (lossBanner) {
-    const fin = getFinancialAlertState();
+    const fin = getFinancialAlertState(agg);
     const lossVal = pNet < 0 ? Math.abs(pNet) : (fin.allNet < 0 ? Math.abs(fin.allNet) : 0);
     const lowWallet = fin.walletAlerts[0];
     if (fin.hasTx && lossVal > 0) {
@@ -5424,7 +5517,7 @@ function renderHome() {
       ? `Net Margin: ${margin >= 0 ? "+" : ""}${margin.toFixed(1)}%`
       : "Cumulative Ledger";
   } else {
-    const prevTxs = transactions.filter(t => t.date.startsWith(prevYm));
+    const prevTxs = transactions.filter(t => String(t.date || "").startsWith(prevYm));
     const prevNet = prevTxs.reduce((s, t) => s + (t.type === "income" ? Number(t.amount) : -Number(t.amount)), 0);
     const prevShort = prevLabel.split(" ")[0];
     if (prevTxs.length === 0 && periodTxs.length === 0) {
@@ -5444,17 +5537,14 @@ function renderHome() {
     }
   }
 
-  // Populate Card Back Executive Telemetry
-  const d30 = new Date();
-  d30.setDate(d30.getDate() - 30);
-  const cutoff30 = d30.toISOString().slice(0, 10);
-  const exp30 = transactions.filter(t => t.type === "expense" && t.date >= cutoff30).reduce((s, t) => s + Number(t.amount), 0);
-  const allNet = transactions.reduce((s, t) => s + (t.type === "income" ? Number(t.amount) : -Number(t.amount)), 0);
+  // Populate Card Back Executive Telemetry (single-pass aggregates)
+  const exp30 = agg.expense30;
+  const allNet = agg.allIn - agg.allOut;
   const sRateBack = pTotals.income > 0 ? ((pNet / pTotals.income) * 100) : 0;
-  const primaryW = wallets[0] ? wallets[0].name : "Cash";
-  const primaryWBal = wallets[0]
-    ? transactions.reduce((s, t) => ((t.walletId || wallets[0].id) === wallets[0].id ? s + (t.type === "income" ? Number(t.amount) : -Number(t.amount)) : s), 0)
-    : 0;
+  const primaryWObj = wallets[0];
+  const primaryW = primaryWObj ? primaryWObj.name : "Cash";
+  const primaryWs = primaryWObj ? agg.walletStats[primaryWObj.id] : null;
+  const primaryWBal = primaryWs ? (primaryWs.inc - primaryWs.exp) : 0;
 
   document.getElementById("heroBackNetWorth").textContent = allNet < 0 ? `−${money(Math.abs(allNet))}` : money(allNet);
   document.getElementById("heroBackDailyBurn").textContent = `${money(exp30 / 30)}/d`;
@@ -5463,11 +5553,8 @@ function renderHome() {
 
   // Render Wallets Strip
   document.getElementById("homeWalletStrip").innerHTML = wallets.map((w) => {
-    const bal = transactions.reduce((sum, t) => {
-      const wId = t.walletId || wallets[0].id;
-      if (wId !== w.id) return sum;
-      return sum + (t.type === "income" ? Number(t.amount) : -Number(t.amount));
-    }, 0);
+    const ws = agg.walletStats[w.id];
+    const bal = ws ? (ws.inc - ws.exp) : 0;
     return `
       <div class="wallet-pill-card">
         <div class="wallet-pill-top">
@@ -5480,12 +5567,7 @@ function renderHome() {
   }).join("");
 
   // All-time net worth KPI
-  const allTotals = transactions.reduce((acc, t) => {
-    acc[t.type] += Number(t.amount);
-    return acc;
-  }, { income: 0, expense: 0 });
-
-  document.getElementById("kpiAllTimeNet").textContent = money(allTotals.income - allTotals.expense);
+  document.getElementById("kpiAllTimeNet").textContent = money(allNet);
   document.getElementById("kpiEntryCount").textContent = `${transactions.length} total entr${transactions.length === 1 ? "y" : "ies"}`;
 
   // Savings Rate KPI
@@ -5496,10 +5578,7 @@ function renderHome() {
   document.getElementById("kpiSavingsSub").textContent = homeShowAllTime ? "All-time ratio" : `${label} ratio`;
 
   // Current Calendar Month Budget Health & Smart Warning Banner
-  const curMonth = todayStr().slice(0, 7);
-  const curMonthSpent = transactions
-    .filter(t => t.type === "expense" && t.date.startsWith(curMonth))
-    .reduce((s, t) => s + Number(t.amount), 0);
+  const curMonthSpent = agg.monthOut;
 
   const cap = settings.budget;
   const bar = document.getElementById("homeBudgetBar");
@@ -5558,7 +5637,7 @@ function renderHome() {
 
   // Recent Activity (Top 5)
   const recent = [...transactions]
-    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
+    .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.id || "").localeCompare(String(a.id || "")))
     .slice(0, 5);
 
   document.getElementById("homeRecentList").innerHTML = recent.length
@@ -5644,7 +5723,7 @@ function renderTxCategoryChips() {
   }
   const activeCat = field.value;
   document.getElementById("txCatPickerGrid").innerHTML = list.map(c => `
-    <button type="button" class="picker-chip ${activeCat === c.name ? "selected" : ""}" onclick="pickTxCategory('${esc(c.name)}')">
+    <button type="button" class="picker-chip ${activeCat === c.name ? "selected" : ""}" onclick="pickTxCategory(${jsAttr(c.name)})">
       ${iconSvg(c.icon)}
       <span>${esc(c.name)}</span>
     </button>
@@ -5658,7 +5737,7 @@ function renderTxWalletChips() {
   }
   const activeW = field.value;
   document.getElementById("txWalletPickerGrid").innerHTML = wallets.map(w => `
-    <button type="button" class="picker-chip ${activeW === w.id ? "selected" : ""}" onclick="pickTxWallet('${esc(w.id)}')">
+    <button type="button" class="picker-chip ${activeW === w.id ? "selected" : ""}" onclick="pickTxWallet(${jsAttr(w.id)})">
       ${iconSvg(w.icon)}
       <span>${esc(w.name)}</span>
     </button>
@@ -5675,36 +5754,42 @@ function syncTxFormUI() {
 function saveTransaction(e) {
   e.preventDefault();
   const amount = Number(document.getElementById("txAmountField").value);
-  const title = document.getElementById("txTitleField").value.trim();
+  const title = document.getElementById("txTitleField").value.trim().slice(0, 80);
   const category = document.getElementById("txCatField").value;
-  const walletId = document.getElementById("txWalletField").value || wallets[0].id;
+  const walletId = document.getElementById("txWalletField").value || (wallets[0] && wallets[0].id) || "wal_cash";
   const date = document.getElementById("txDateField").value;
-  const note = document.getElementById("txNoteField").value.trim();
+  const note = document.getElementById("txNoteField").value.trim().slice(0, 200);
 
-  if (!Number.isFinite(amount) || amount <= 0 || !title || !category || !date) {
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 1e12 || !title || !category || !isValidIsoDateStr(date)) {
     haptic([24, 30, 24]);
     showSnackbar("Please complete all required fields.");
     return;
   }
 
+  const prevTx = editingTxId ? transactions.find(t => t.id === editingTxId) : null;
   const entry = {
-    id: editingTxId || ("tx_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6)),
+    id: editingTxId || uid("tx"),
     type: txFormType,
     amount: Math.round(amount * 100) / 100,
     title,
     category,
     walletId,
     date,
-    note
+    note,
+    createdAt: prevTx && Number.isFinite(Number(prevTx.createdAt)) ? Number(prevTx.createdAt) : Date.now()
   };
 
+  const prevTransactions = transactions;
   if (editingTxId) {
     transactions = transactions.map(t => t.id === editingTxId ? entry : t);
   } else {
     transactions = [entry, ...transactions];
   }
 
-  persistAll();
+  if (!persistAll()) {
+    transactions = prevTransactions;
+    return;
+  }
   const wasEdit = Boolean(editingTxId);
   closeSheet("txSheetScrim");
   renderAll();
@@ -5760,9 +5845,9 @@ function openTxDetail(id) {
   `;
 
   document.getElementById("detailSheetFooter").innerHTML = `
-    <button type="button" class="m3-btn-tonal ripple-host" onclick="closeSheet('detailSheetScrim'); openTxSheet('${tx.type}', '${esc(tx.id)}')">Edit</button>
-    <button type="button" class="m3-btn-outlined ripple-host" onclick="duplicateTx('${esc(tx.id)}')">Duplicate</button>
-    <button type="button" class="m3-btn-danger ripple-host" onclick="deleteTxPrompt('${esc(tx.id)}')">Delete</button>
+    <button type="button" class="m3-btn-tonal ripple-host" onclick="closeSheet('detailSheetScrim'); openTxSheet(${jsAttr(tx.type)}, ${jsAttr(tx.id)})">Edit</button>
+    <button type="button" class="m3-btn-outlined ripple-host" onclick="duplicateTx(${jsAttr(tx.id)})">Duplicate</button>
+    <button type="button" class="m3-btn-danger ripple-host" onclick="deleteTxPrompt(${jsAttr(tx.id)})">Delete</button>
   `;
 
   openSheet("detailSheetScrim");
@@ -5773,11 +5858,16 @@ function duplicateTx(id) {
   if (!orig) return;
   const copy = {
     ...orig,
-    id: "tx_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
-    date: todayStr()
+    id: uid("tx"),
+    date: todayStr(),
+    createdAt: Date.now()
   };
+  const prevTransactions = transactions;
   transactions = [copy, ...transactions];
-  persistAll();
+  if (!persistAll()) {
+    transactions = prevTransactions;
+    return;
+  }
   haptic(10);
   closeSheet("detailSheetScrim");
   renderAll();
@@ -5787,9 +5877,15 @@ function duplicateTx(id) {
 function softDeleteTx(id) {
   const tx = transactions.find(t => t.id === id);
   if (!tx) return;
+  const prevTransactions = transactions;
+  const prevDeleted = deletedTransactions;
   transactions = transactions.filter(t => t.id !== id);
   deletedTransactions = [{ ...tx, deletedAt: new Date().toISOString() }, ...deletedTransactions.filter(d => d.id !== id)];
-  persistAll();
+  if (!persistAll()) {
+    transactions = prevTransactions;
+    deletedTransactions = prevDeleted;
+    return;
+  }
   haptic(14);
   renderAll();
   showSnackbar(`Moved "${tx.title}" to Deleted`, "UNDO", () => restoreDeletedTx(id, true), 4200);
@@ -5812,9 +5908,15 @@ function restoreDeletedTx(id, silentUndo = false) {
   if (!item) return;
   const restored = { ...item };
   delete restored.deletedAt;
+  const prevTransactions = transactions;
+  const prevDeleted = deletedTransactions;
   deletedTransactions = deletedTransactions.filter(d => d.id !== id);
   transactions = [restored, ...transactions];
-  persistAll();
+  if (!persistAll()) {
+    transactions = prevTransactions;
+    deletedTransactions = prevDeleted;
+    return;
+  }
   haptic(10);
   renderAll();
   showSnackbar(silentUndo ? "Restored transaction" : "Record restored to ledger");
@@ -5828,8 +5930,12 @@ function permanentDeleteTxPrompt(id) {
     `Permanently delete "${item.title}" (${money(item.amount)})? This cannot be undone.`,
     "Delete Permanently",
     () => {
+      const prevDeleted = deletedTransactions;
       deletedTransactions = deletedTransactions.filter(d => d.id !== id);
-      persistAll();
+      if (!persistAll()) {
+        deletedTransactions = prevDeleted;
+        return;
+      }
       haptic(14);
       renderAll();
       showSnackbar("Permanently deleted");
@@ -5844,8 +5950,12 @@ function emptyDeletedPrompt() {
     `Permanently delete all ${deletedTransactions.length} record(s) in Deleted? This cannot be undone.`,
     "Delete All Forever",
     () => {
+      const prevDeleted = deletedTransactions;
       deletedTransactions = [];
-      persistAll();
+      if (!persistAll()) {
+        deletedTransactions = prevDeleted;
+        return;
+      }
       haptic(14);
       renderAll();
       showSnackbar("All deleted records removed permanently");
@@ -5883,7 +5993,7 @@ function renderDeleted() {
   container.innerHTML = deletedTransactions.map(t => {
     const isInc = t.type === "income";
     const wName = getWalletName(t.walletId);
-    const delDate = t.deletedAt ? t.deletedAt.slice(0, 10) : "";
+    const delDate = formatDeletedDate(t.deletedAt);
     return `
       <div class="m3-card" style="padding:14px">
         <div class="flex-between" style="align-items:flex-start">
@@ -5904,8 +6014,8 @@ function renderDeleted() {
           <div class="tx-val num ${isInc ? "positive" : "negative"}" style="flex-shrink:0">${isInc ? "+" : "−"}${money(t.amount)}</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
-          <button type="button" class="m3-btn-tonal ripple-host" style="min-height:38px;font-size:12px" onclick="restoreDeletedTx('${esc(t.id)}')">Restore</button>
-          <button type="button" class="m3-btn-danger ripple-host" style="min-height:38px;font-size:12px" onclick="permanentDeleteTxPrompt('${esc(t.id)}')">Delete</button>
+          <button type="button" class="m3-btn-tonal ripple-host" style="min-height:38px;font-size:12px" onclick="restoreDeletedTx(${jsAttr(t.id)})">Restore</button>
+          <button type="button" class="m3-btn-danger ripple-host" style="min-height:38px;font-size:12px" onclick="permanentDeleteTxPrompt(${jsAttr(t.id)})">Delete</button>
         </div>
       </div>
     `;
@@ -5926,7 +6036,7 @@ function txRowHTML(t) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         <span>Delete</span>
       </div>
-      <div class="tx-card ripple-host" onclick="handleTxCardTap('${esc(t.id)}')">
+      <div class="tx-card ripple-host" onclick="handleTxCardTap(${jsAttr(t.id)})">
         <div class="tx-leading">${catIconSvg(t.type, t.category)}</div>
         <div class="tx-center">
           <div class="tx-name">${esc(t.title)}</div>
@@ -5961,6 +6071,14 @@ function emptyHTML(title, desc) {
 /* ==========================================================================
    ACTIVITY VIEW (DATE-GROUPED LEDGER)
    ========================================================================== */
+let activitySearchTimer = null;
+function scheduleActivitySearch() {
+  clearTimeout(activitySearchTimer);
+  activitySearchTimer = setTimeout(() => {
+    renderActivity();
+  }, 90);
+}
+
 function setActivityTypeFilter(type) {
   activityTypeFilter = type;
   document.querySelectorAll("#activityFilterChips [data-type]").forEach(btn => {
@@ -5984,7 +6102,7 @@ function setActivityWalletFilter(wId) {
 
 function renderActivity() {
   document.getElementById("activityWalletFilterChips").innerHTML = wallets.map(w => `
-    <button type="button" class="m3-chip ${activityWalletFilter === w.id ? 'selected' : ''}" onclick="setActivityWalletFilter('${esc(w.id)}')">
+    <button type="button" class="m3-chip ${activityWalletFilter === w.id ? 'selected' : ''}" onclick="setActivityWalletFilter(${jsAttr(w.id)})">
       ${iconSvg(w.icon)}
       ${esc(w.name)}
     </button>
@@ -5996,9 +6114,10 @@ function renderActivity() {
   const yest = yesterdayStr();
   const month = today.slice(0, 7);
   const year = today.slice(0, 4);
+  const defaultWalId = (wallets[0] && wallets[0].id) ? wallets[0].id : "wal_cash";
 
   let list = transactions.filter(t => {
-    const wId = t.walletId || wallets[0].id;
+    const wId = t.walletId || defaultWalId;
     const wName = getWalletName(wId);
     const matchesQ = !q || `${t.title} ${t.category} ${wName} ${t.note || ""}`.toLowerCase().includes(q);
     const matchesType = activityTypeFilter === "all" || t.type === activityTypeFilter;
@@ -6006,15 +6125,15 @@ function renderActivity() {
     const matchesPeriod =
       activityPeriodFilter === "all" ||
       (activityPeriodFilter === "today" && t.date === today) ||
-      (activityPeriodFilter === "month" && t.date.startsWith(month)) ||
-      (activityPeriodFilter === "year" && t.date.startsWith(year));
+      (activityPeriodFilter === "month" && String(t.date || "").startsWith(month)) ||
+      (activityPeriodFilter === "year" && String(t.date || "").startsWith(year));
     return matchesQ && matchesType && matchesWallet && matchesPeriod;
   });
 
   list.sort((a, b) => {
     if (sortMode === "highest") return Number(b.amount) - Number(a.amount);
     if (sortMode === "lowest") return Number(a.amount) - Number(b.amount);
-    return b.date.localeCompare(a.date) || b.id.localeCompare(a.id);
+    return String(b.date || "").localeCompare(String(a.date || "")) || String(b.id || "").localeCompare(String(a.id || ""));
   });
 
   document.getElementById("activityResultCount").textContent = `${list.length} entr${list.length === 1 ? "y" : "ies"}`;
@@ -6067,7 +6186,12 @@ function selectChartMonth(idx) {
 }
 
 function renderAnalytics() {
-  const fin = getFinancialAlertState();
+  const curMonth = todayStr().slice(0, 7);
+  const d30 = new Date();
+  d30.setDate(d30.getDate() - 30);
+  const cutoff = formatLocalDate(d30);
+  const agg = buildTxAggregates(curMonth, cutoff);
+  const fin = getFinancialAlertState(agg);
   const beCard = document.getElementById("anaBreakEvenCard");
   if (beCard) {
     if (!fin.hasTx) {
@@ -6095,20 +6219,10 @@ function renderAnalytics() {
     }
   }
 
-  const d30 = new Date();
-  d30.setDate(d30.getDate() - 30);
-  const cutoff = d30.toISOString().slice(0, 10);
-  const exp30 = transactions
-    .filter(t => t.type === "expense" && t.date >= cutoff)
-    .reduce((s, t) => s + Number(t.amount), 0);
-  document.getElementById("anaDailyAvg").textContent = money(exp30 / 30);
+  document.getElementById("anaDailyAvg").textContent = money(agg.expense30 / 30);
 
-  const catMap = {};
-  transactions.filter(t => t.type === "expense").forEach(t => {
-    catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount);
-  });
-  const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
-  const totalOut = sortedCats.reduce((s, [, v]) => s + v, 0);
+  const sortedCats = Object.entries(agg.expenseCatTotals).sort((a, b) => b[1] - a[1]);
+  const totalOut = agg.allOut;
 
   document.getElementById("anaTotalOutflow").textContent = money(totalOut);
   if (sortedCats.length) {
@@ -6133,15 +6247,26 @@ function renderAnalytics() {
     : emptyHTML("No Expense Data", "Category spending proportions will appear once expenses are logged.");
 
   const months = [];
+  const monthBuckets = Object.create(null);
   const base = new Date();
   for (let i = 5; i >= 0; i--) {
     const d = new Date(base.getFullYear(), base.getMonth() - i, 1);
     const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     const shortLabel = d.toLocaleString("en-US", { month: "short" });
     const fullLabel = d.toLocaleString("en-US", { month: "short", year: "numeric" });
-    const inc = transactions.filter(t => t.type === "income" && t.date.startsWith(ym)).reduce((s, t) => s + Number(t.amount), 0);
-    const exp = transactions.filter(t => t.type === "expense" && t.date.startsWith(ym)).reduce((s, t) => s + Number(t.amount), 0);
-    months.push({ ym, shortLabel, fullLabel, inc, exp });
+    const bucket = { ym, shortLabel, fullLabel, inc: 0, exp: 0 };
+    months.push(bucket);
+    monthBuckets[ym] = bucket;
+  }
+
+  for (let i = 0; i < transactions.length; i++) {
+    const t = transactions[i];
+    if (!t || !t.date) continue;
+    const bucket = monthBuckets[String(t.date).slice(0, 7)];
+    if (!bucket) continue;
+    const amt = Number(t.amount) || 0;
+    if (t.type === "income") bucket.inc += amt;
+    else bucket.exp += amt;
   }
 
   const activeM = months[selectedChartIdx] || months[5];
@@ -6191,8 +6316,12 @@ function saveOverallBudget() {
     showSnackbar("Enter a valid non-negative amount");
     return;
   }
+  const prevBudget = settings.budget;
   settings.budget = Math.round(val * 100) / 100;
-  persistAll();
+  if (!persistAll()) {
+    settings.budget = prevBudget;
+    return;
+  }
   renderAll();
   showSnackbar("Monthly spending cap saved");
 }
@@ -6200,9 +6329,13 @@ function saveOverallBudget() {
 function setCatBudget(catName, raw) {
   const val = Number(raw);
   if (!Number.isFinite(val) || val < 0) return;
+  const prevBudgets = { ...settings.categoryBudgets };
   if (val === 0) delete settings.categoryBudgets[catName];
   else settings.categoryBudgets[catName] = Math.round(val * 100) / 100;
-  persistAll();
+  if (!persistAll()) {
+    settings.categoryBudgets = prevBudgets;
+    return;
+  }
   renderBudget();
   updateNotificationBadge();
   showSnackbar(`Updated cap for ${catName}`);
@@ -6211,8 +6344,8 @@ function setCatBudget(catName, raw) {
 function renderBudget() {
   document.getElementById("budgetCurrencyCode").textContent = settings.currency;
   const curMonth = todayStr().slice(0, 7);
-  const monthExpTxs = transactions.filter(t => t.type === "expense" && t.date.startsWith(curMonth));
-  const spent = monthExpTxs.reduce((s, t) => s + Number(t.amount), 0);
+  const agg = buildTxAggregates(curMonth);
+  const spent = agg.monthOut;
 
   const cap = settings.budget;
   document.getElementById("budgetOverallInput").value = cap > 0 ? cap : "";
@@ -6242,7 +6375,7 @@ function renderBudget() {
 
   let allocSum = 0;
   document.getElementById("budgetCategoryList").innerHTML = (categories.expense || []).map(cat => {
-    const cSpent = monthExpTxs.filter(t => t.category === cat.name).reduce((s, t) => s + Number(t.amount), 0);
+    const cSpent = agg.curMonthCatExpense[cat.name] || 0;
     const cCap = Number(settings.categoryBudgets[cat.name] || 0);
     allocSum += cCap;
     const cPct = cCap > 0 ? Math.min(100, (cSpent / cCap) * 100) : 0;
@@ -6260,7 +6393,7 @@ function renderBudget() {
           </div>
           <input class="m3-input num" type="number" min="0" step="1" style="width:104px;min-height:40px;padding:6px 10px;font-size:12.5px"
             placeholder="Cap" value="${cCap > 0 ? cCap : ""}"
-            onchange="setCatBudget('${esc(cat.name)}', this.value)">
+            onchange="setCatBudget(${jsAttr(cat.name)}, this.value)">
         </div>
         ${cCap > 0 ? `<div class="m3-progress-track" style="margin:10px 0 0;height:6px"><div class="m3-progress-fill ${bCls}" style="width:${cPct}%"></div></div>` : ""}
       </div>
@@ -6280,17 +6413,27 @@ function openWalletSheet() {
 
 function saveWallet(e) {
   e.preventDefault();
-  const name = document.getElementById("walletNameField").value.trim();
-  const icon = document.getElementById("walletIconField").value;
+  const name = document.getElementById("walletNameField").value.trim().slice(0, 28);
+  const rawIcon = document.getElementById("walletIconField").value;
+  const icon = ICONS[rawIcon] ? rawIcon : "wallet";
   if (!name) return;
 
-  wallets.push({
-    id: "wal_" + Date.now(),
+  if (wallets.some(w => w.name.toLowerCase() === name.toLowerCase())) {
+    showSnackbar("Wallet name already exists");
+    return;
+  }
+
+  const prevWallets = wallets;
+  wallets = [...wallets, {
+    id: uid("wal"),
     name,
     icon
-  });
+  }];
 
-  persistAll();
+  if (!persistAll()) {
+    wallets = prevWallets;
+    return;
+  }
   closeSheet("walletSheetScrim");
   renderAll();
   showSnackbar(`Wallet "${name}" added`);
@@ -6301,14 +6444,24 @@ function deleteWalletPrompt(id) {
     showSnackbar("At least one wallet is required");
     return;
   }
-  const used = transactions.filter(t => (t.walletId || wallets[0].id) === id).length;
+  const defaultWalId = wallets[0].id;
+  const used = transactions.filter(t => (t.walletId || defaultWalId) === id).length;
   if (used > 0) {
     showSnackbar(`Cannot delete: used in ${used} transaction(s)`);
     return;
   }
+  const usedRec = recurringItems.filter(r => (r.walletId || defaultWalId) === id).length;
+  if (usedRec > 0) {
+    showSnackbar(`Cannot delete: used in ${usedRec} recurring schedule(s)`);
+    return;
+  }
   openConfirmSheet("Remove Wallet", "Delete this account/wallet permanently?", "Remove", () => {
+    const prevWallets = wallets;
     wallets = wallets.filter(w => w.id !== id);
-    persistAll();
+    if (!persistAll()) {
+      wallets = prevWallets;
+      return;
+    }
     renderAll();
     showSnackbar("Wallet removed");
   });
@@ -6316,12 +6469,10 @@ function deleteWalletPrompt(id) {
 
 function renderWalletsManager() {
   document.getElementById("moreWalletsSub").textContent = `${wallets.length} active wallet${wallets.length === 1 ? "" : "s"}`;
+  const agg = buildTxAggregates();
   document.getElementById("walletsManagerList").innerHTML = wallets.map(w => {
-    const bal = transactions.reduce((sum, t) => {
-      const wId = t.walletId || wallets[0].id;
-      if (wId !== w.id) return sum;
-      return sum + (t.type === "income" ? Number(t.amount) : -Number(t.amount));
-    }, 0);
+    const ws = agg.walletStats[w.id];
+    const bal = ws ? (ws.inc - ws.exp) : 0;
     return `
       <div class="m3-card">
         <div class="flex-between">
@@ -6332,7 +6483,7 @@ function renderWalletsManager() {
               <div class="sub-note num">Current Balance: <strong>${money(bal)}</strong></div>
             </div>
           </div>
-          <button type="button" class="md-icon-btn compact" onclick="deleteWalletPrompt('${esc(w.id)}')" aria-label="Delete Wallet">
+          <button type="button" class="md-icon-btn compact" onclick="deleteWalletPrompt(${jsAttr(w.id)})" aria-label="Delete Wallet">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
         </div>
@@ -6380,7 +6531,7 @@ function pickCatIcon(key) {
 
 function saveCategory(e) {
   e.preventDefault();
-  const clean = document.getElementById("catNameField").value.trim();
+  const clean = document.getElementById("catNameField").value.trim().slice(0, 28);
   if (!clean) return;
 
   const list = categories[catFormType] || [];
@@ -6389,10 +6540,20 @@ function saveCategory(e) {
     return;
   }
 
+  const prevSnapshot = {
+    cats: categories[catFormType],
+    transactions,
+    deletedTransactions,
+    recurringItems,
+    categoryBudgets: { ...settings.categoryBudgets }
+  };
+
   if (editingCatName) {
     categories[catFormType] = list.map(c => c.name === editingCatName ? { name: clean, icon: chosenCatIcon } : c);
     if (editingCatName !== clean) {
       transactions = transactions.map(t => (t.type === catFormType && t.category === editingCatName) ? { ...t, category: clean } : t);
+      deletedTransactions = deletedTransactions.map(t => (t.type === catFormType && t.category === editingCatName) ? { ...t, category: clean } : t);
+      recurringItems = recurringItems.map(r => (r.type === catFormType && r.category === editingCatName) ? { ...r, category: clean } : r);
       if (catFormType === "expense" && settings.categoryBudgets[editingCatName] !== undefined) {
         settings.categoryBudgets[clean] = settings.categoryBudgets[editingCatName];
         delete settings.categoryBudgets[editingCatName];
@@ -6402,10 +6563,18 @@ function saveCategory(e) {
     categories[catFormType] = [...list, { name: clean, icon: chosenCatIcon }];
   }
 
-  persistAll();
+  if (!persistAll()) {
+    categories[catFormType] = prevSnapshot.cats;
+    transactions = prevSnapshot.transactions;
+    deletedTransactions = prevSnapshot.deletedTransactions;
+    recurringItems = prevSnapshot.recurringItems;
+    settings.categoryBudgets = prevSnapshot.categoryBudgets;
+    return;
+  }
+  const wasEdit = Boolean(editingCatName);
   closeSheet("catSheetScrim");
   renderAll();
-  showSnackbar(editingCatName ? "Category updated" : "Category created");
+  showSnackbar(wasEdit ? "Category updated" : "Category created");
 }
 
 function deleteCategoryPrompt(type, name) {
@@ -6414,26 +6583,38 @@ function deleteCategoryPrompt(type, name) {
     showSnackbar(`In use by ${usedCount} transaction(s)`);
     return;
   }
+  const usedRecCount = recurringItems.filter(r => r.type === type && r.category === name).length;
+  if (usedRecCount > 0) {
+    showSnackbar(`In use by ${usedRecCount} recurring schedule(s)`);
+    return;
+  }
   if ((categories[type] || []).length <= 1) {
     showSnackbar("At least one category is required");
     return;
   }
 
   openConfirmSheet("Remove Category", `Delete "${name}" from ${type} categories?`, "Remove", () => {
+    const prevCats = categories[type];
+    const prevBudgets = { ...settings.categoryBudgets };
     categories[type] = categories[type].filter(c => c.name !== name);
     delete settings.categoryBudgets[name];
-    persistAll();
+    if (!persistAll()) {
+      categories[type] = prevCats;
+      settings.categoryBudgets = prevBudgets;
+      return;
+    }
     renderAll();
     showSnackbar("Category removed");
   });
 }
 
 function renderCategories() {
+  const agg = buildTxAggregates();
   for (const type of ["income", "expense"]) {
     const el = document.getElementById(type === "income" ? "catIncomeList" : "catExpenseList");
     const list = categories[type] || [];
     el.innerHTML = list.map((c, idx) => {
-      const count = transactions.filter(t => t.type === type && t.category === c.name).length;
+      const count = agg.catCounts[`${type}:${c.name}`] || 0;
       return `
         <div class="flex-between" style="padding:10px 0;${idx > 0 ? "border-top:1px solid var(--md-outline-variant)" : ""}">
           <div style="display:flex;align-items:center;gap:12px;min-width:0">
@@ -6444,10 +6625,10 @@ function renderCategories() {
             </div>
           </div>
           <div style="display:flex;gap:4px">
-            <button type="button" class="md-icon-btn compact" onclick="openCategorySheet('${type}', '${esc(c.name)}')" aria-label="Edit">
+            <button type="button" class="md-icon-btn compact" onclick="openCategorySheet('${type}', ${jsAttr(c.name)})" aria-label="Edit">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
-            <button type="button" class="md-icon-btn compact" onclick="deleteCategoryPrompt('${type}', '${esc(c.name)}')" aria-label="Delete">
+            <button type="button" class="md-icon-btn compact" onclick="deleteCategoryPrompt('${type}', ${jsAttr(c.name)})" aria-label="Delete">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </button>
           </div>
@@ -6485,16 +6666,17 @@ function syncRecFormUI() {
 function saveRecurring(e) {
   e.preventDefault();
   const amount = Number(document.getElementById("recAmountField").value);
-  const title = document.getElementById("recTitleField").value.trim();
+  const title = document.getElementById("recTitleField").value.trim().slice(0, 80);
   const category = document.getElementById("recCatField").value;
-  const walletId = document.getElementById("recWalletField").value || wallets[0].id;
-  const freq = document.getElementById("recFreqField").value;
+  const walletId = document.getElementById("recWalletField").value || (wallets[0] && wallets[0].id) || "wal_cash";
+  const freq = document.getElementById("recFreqField").value === "weekly" ? "weekly" : "monthly";
   const nextDate = document.getElementById("recNextDateField").value;
 
-  if (!Number.isFinite(amount) || amount <= 0 || !title || !nextDate) return;
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 1e12 || !title || !isValidIsoDateStr(nextDate)) return;
 
-  recurringItems.push({
-    id: "rec_" + Date.now(),
+  const prevRec = recurringItems;
+  recurringItems = [...recurringItems, {
+    id: uid("rec"),
     type: recFormType,
     amount: Math.round(amount * 100) / 100,
     title,
@@ -6502,38 +6684,56 @@ function saveRecurring(e) {
     walletId,
     freq,
     nextDate
-  });
+  }];
 
-  persistAll();
+  if (!persistAll()) {
+    recurringItems = prevRec;
+    return;
+  }
   closeSheet("recSheetScrim");
   renderAll();
   showSnackbar("Recurring schedule created");
 }
 
 function advanceDate(dateStr, freq) {
-  const d = new Date(dateStr + "T00:00:00");
-  if (freq === "weekly") d.setDate(d.getDate() + 7);
-  else d.setMonth(d.getMonth() + 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  if (!isValidIsoDateStr(dateStr)) return todayStr();
+  const [y, m, day] = String(dateStr).split("-").map(Number);
+  if (freq === "weekly") {
+    const d = new Date(y, m - 1, day + 7);
+    return formatLocalDate(d);
+  }
+  const targetYear = y + Math.floor(m / 12);
+  const targetMonthIndex = m % 12; // 0-indexed next month
+  const maxDayInTarget = new Date(targetYear, targetMonthIndex + 1, 0).getDate();
+  return formatLocalDate(new Date(targetYear, targetMonthIndex, Math.min(day, maxDayInTarget)));
 }
 
 function postSingleRecurring(recId) {
   const item = recurringItems.find(r => r.id === recId);
   if (!item) return;
 
+  const prevTransactions = transactions;
+  const prevNextDate = item.nextDate;
+  const defaultWalId = (wallets[0] && wallets[0].id) ? wallets[0].id : "wal_cash";
+
   transactions = [{
-    id: "tx_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+    id: uid("tx"),
     type: item.type,
     amount: item.amount,
     title: item.title,
     category: item.category,
-    walletId: item.walletId || wallets[0].id,
+    walletId: item.walletId || defaultWalId,
     date: todayStr(),
-    note: `Recurring (${item.freq})`
+    note: `Recurring (${item.freq})`,
+    createdAt: Date.now()
   }, ...transactions];
 
   item.nextDate = advanceDate(item.nextDate, item.freq);
-  persistAll();
+  if (!persistAll()) {
+    transactions = prevTransactions;
+    item.nextDate = prevNextDate;
+    return;
+  }
   renderAll();
   showSnackbar(`Posted "${item.title}" to ledger`);
 }
@@ -6543,29 +6743,43 @@ function postAllDueRecurring() {
   const due = recurringItems.filter(r => r.nextDate <= today);
   if (!due.length) return;
 
-  for (const item of due) {
-    transactions = [{
-      id: "tx_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+  const prevTransactions = transactions;
+  const prevDates = due.map(d => [d, d.nextDate]);
+  const defaultWalId = (wallets[0] && wallets[0].id) ? wallets[0].id : "wal_cash";
+
+  const newEntries = due.map(item => {
+    item.nextDate = advanceDate(item.nextDate, item.freq);
+    return {
+      id: uid("tx"),
       type: item.type,
       amount: item.amount,
       title: item.title,
       category: item.category,
-      walletId: item.walletId || wallets[0].id,
+      walletId: item.walletId || defaultWalId,
       date: today,
-      note: `Recurring (${item.freq})`
-    }, ...transactions];
-    item.nextDate = advanceDate(item.nextDate, item.freq);
-  }
+      note: `Recurring (${item.freq})`,
+      createdAt: Date.now()
+    };
+  });
+  transactions = [...newEntries, ...transactions];
 
-  persistAll();
+  if (!persistAll()) {
+    transactions = prevTransactions;
+    prevDates.forEach(([item, oldDate]) => { item.nextDate = oldDate; });
+    return;
+  }
   renderAll();
   showSnackbar(`Posted ${due.length} scheduled transaction(s)`);
 }
 
 function deleteRecurring(recId) {
   openConfirmSheet("Delete Schedule", "Remove this recurring transaction schedule?", "Delete", () => {
+    const prevRec = recurringItems;
     recurringItems = recurringItems.filter(r => r.id !== recId);
-    persistAll();
+    if (!persistAll()) {
+      recurringItems = prevRec;
+      return;
+    }
     renderAll();
     showSnackbar("Schedule deleted");
   });
@@ -6595,8 +6809,8 @@ function renderRecurring() {
           <div class="num ${isInc ? "positive" : "negative"}" style="font-weight:700">${isInc ? "+" : "−"}${money(r.amount)}</div>
         </div>
         <div style="display:flex;gap:8px;margin-top:12px">
-          <button type="button" class="m3-btn-tonal ripple-host" style="flex:1;min-height:38px;font-size:12px" onclick="postSingleRecurring('${esc(r.id)}')">Log Now</button>
-          <button type="button" class="m3-btn-outlined ripple-host" style="min-height:38px;padding:0 14px;font-size:12px" onclick="deleteRecurring('${esc(r.id)}')">Remove</button>
+          <button type="button" class="m3-btn-tonal ripple-host" style="flex:1;min-height:38px;font-size:12px" onclick="postSingleRecurring(${jsAttr(r.id)})">Log Now</button>
+          <button type="button" class="m3-btn-outlined ripple-host" style="min-height:38px;padding:0 14px;font-size:12px" onclick="deleteRecurring(${jsAttr(r.id)})">Remove</button>
         </div>
       </div>
     `;
@@ -7013,10 +7227,11 @@ function buildFinancialSummaryPDF() {
   y -= 14;
   addRule(y + 4);
   y -= 12;
+  const defaultWalId = (wallets[0] && wallets[0].id) ? wallets[0].id : "wal_cash";
   wallets.forEach(w => {
     ensureSpace(16);
     const bal = transactions.reduce((s, t) => {
-      const wId = t.walletId || wallets[0].id;
+      const wId = t.walletId || defaultWalId;
       return wId === w.id ? s + (t.type === "income" ? Number(t.amount) : -Number(t.amount)) : s;
     }, 0);
     addText(48, y, pdfSafeText(w.name).slice(0, 42), 10, false);
@@ -7150,6 +7365,51 @@ function buildFinancialSummaryPDF() {
   return out;
 }
 
+const BACKUP_FORMAT_VERSION = 4;
+const MAX_BACKUP_FILE_BYTES = 15 * 1024 * 1024;
+const FILE_OP_TIMEOUT_MS = 45000;
+let activeFileOp = null;
+let fileFocusRecoveryTimer = null;
+
+function yieldToMain() {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+function acquireFileOpLock(kind) {
+  if (activeFileOp) {
+    showSnackbar("Please wait for the current file operation to finish.");
+    return false;
+  }
+  const opToken = Symbol(kind);
+  const timerId = setTimeout(() => {
+    if (activeFileOp && activeFileOp.token === opToken) {
+      activeFileOp = null;
+    }
+  }, FILE_OP_TIMEOUT_MS);
+  activeFileOp = { kind, token: opToken, timerId, pendingBridge: false };
+  return true;
+}
+
+function releaseFileOpLock() {
+  clearTimeout(fileFocusRecoveryTimer);
+  fileFocusRecoveryTimer = null;
+  if (activeFileOp) {
+    clearTimeout(activeFileOp.timerId);
+    activeFileOp = null;
+  }
+}
+
+window.addEventListener("focus", () => {
+  if (!activeFileOp || !activeFileOp.pendingBridge) return;
+  const lockedToken = activeFileOp.token;
+  clearTimeout(fileFocusRecoveryTimer);
+  fileFocusRecoveryTimer = setTimeout(() => {
+    if (activeFileOp && activeFileOp.token === lockedToken) {
+      releaseFileOpLock();
+    }
+  }, 2200);
+});
+
 function getAndroidBridge() {
   try {
     if (window.Android && typeof window.Android === "object") return window.Android;
@@ -7159,21 +7419,37 @@ function getAndroidBridge() {
 }
 
 function bytesToBase64(bytes) {
-  let binary = "";
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes || 0);
+  const parts = [];
+  const chunk = 0x4000;
+  for (let i = 0; i < arr.length; i += chunk) {
+    parts.push(String.fromCharCode.apply(null, arr.subarray(i, i + chunk)));
   }
-  return btoa(binary);
+  return btoa(parts.join(""));
+}
+
+async function bytesToBase64Async(bytes) {
+  const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes || 0);
+  if (arr.length <= 0x10000) return bytesToBase64(arr);
+  const parts = [];
+  const chunk = 0x4000;
+  for (let i = 0; i < arr.length; i += chunk) {
+    parts.push(String.fromCharCode.apply(null, arr.subarray(i, i + chunk)));
+    if ((i & 0xFFFF) === 0xC000) await yieldToMain();
+  }
+  return btoa(parts.join(""));
 }
 
 function base64ToUtf8(b64) {
-  const binary = atob(String(b64 || "").replace(/\s+/g, ""));
+  const cleaned = String(b64 || "")
+    .replace(/^data:[^,]*,/, "")
+    .replace(/\s+/g, "");
+  const binary = atob(cleaned);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
-  return new TextDecoder().decode(bytes);
+  return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
 }
 
 function saveViaAndroidCreateDocument(content, filename, type) {
@@ -7184,48 +7460,94 @@ function saveViaAndroidCreateDocument(content, filename, type) {
   const textContent = isBinary ? "" : String(content ?? "");
 
   try {
-    if (typeof bridge.createDocumentBase64 === "function") {
-      const bytes = isBinary ? content : new TextEncoder().encode(textContent);
-      bridge.createDocumentBase64(String(filename), mimeType, bytesToBase64(bytes));
-      return true;
-    }
-    if (typeof bridge.createDocument === "function") {
-      const payload = isBinary ? bytesToBase64(content) : textContent;
-      bridge.createDocument(String(filename), mimeType, payload);
-      return true;
-    }
-    if (typeof bridge.saveFile === "function") {
-      const payload = isBinary ? bytesToBase64(content) : textContent;
-      bridge.saveFile(String(filename), mimeType, payload);
-      return true;
+    if (!isBinary) {
+      if (typeof bridge.createDocument === "function") {
+        bridge.createDocument(String(filename), mimeType, textContent);
+        return true;
+      }
+      if (typeof bridge.saveFile === "function") {
+        bridge.saveFile(String(filename), mimeType, textContent);
+        return true;
+      }
+      if (typeof bridge.createDocumentBase64 === "function") {
+        const bytes = new TextEncoder().encode(textContent);
+        bridge.createDocumentBase64(String(filename), mimeType, bytesToBase64(bytes));
+        return true;
+      }
+    } else {
+      if (typeof bridge.createDocumentBase64 === "function") {
+        bridge.createDocumentBase64(String(filename), mimeType, bytesToBase64(content));
+        return true;
+      }
+      if (typeof bridge.createDocument === "function") {
+        bridge.createDocument(String(filename), mimeType, bytesToBase64(content));
+        return true;
+      }
+      if (typeof bridge.saveFile === "function") {
+        bridge.saveFile(String(filename), mimeType, bytesToBase64(content));
+        return true;
+      }
     }
   } catch {}
   return false;
 }
 
-function exportPDFSummary() {
-  haptic(10);
+async function saveViaAndroidCreateDocumentAsync(content, filename, type) {
+  const bridge = getAndroidBridge();
+  if (!bridge) return "unavailable";
+  const mimeType = String(type || "application/octet-stream").split(";")[0].trim();
+  const isBinary = content instanceof Uint8Array;
+  const textContent = isBinary ? "" : String(content ?? "");
+
   try {
-    const pdfBytes = buildFinancialSummaryPDF();
-    const usedAndroid = downloadBlob(pdfBytes, `asbily-financial-summary-${todayStr()}.pdf`, "application/pdf");
-    if (usedAndroid) {
-      showSnackbar("Choose location to save PDF...");
-    } else {
-      showSnackbar("PDF summary downloaded", "Print", () => {
-        try { window.print(); } catch {}
-      }, 4500);
+    if (!isBinary) {
+      if (typeof bridge.createDocument === "function") {
+        bridge.createDocument(String(filename), mimeType, textContent);
+        return "dispatched";
+      }
+      if (typeof bridge.saveFile === "function") {
+        bridge.saveFile(String(filename), mimeType, textContent);
+        return "dispatched";
+      }
+      if (typeof bridge.createDocumentBase64 === "function") {
+        const bytes = new TextEncoder().encode(textContent);
+        const b64 = await bytesToBase64Async(bytes);
+        bridge.createDocumentBase64(String(filename), mimeType, b64);
+        return "dispatched";
+      }
+      return "unavailable";
     }
+
+    const b64 = await bytesToBase64Async(content);
+    if (typeof bridge.createDocumentBase64 === "function") {
+      bridge.createDocumentBase64(String(filename), mimeType, b64);
+      return "dispatched";
+    }
+    if (typeof bridge.createDocument === "function") {
+      bridge.createDocument(String(filename), mimeType, b64);
+      return "dispatched";
+    }
+    if (typeof bridge.saveFile === "function") {
+      bridge.saveFile(String(filename), mimeType, b64);
+      return "dispatched";
+    }
+    return "unavailable";
   } catch {
-    showSnackbar("Opening print dialog...");
-    setTimeout(() => {
-      try { window.print(); } catch {}
-    }, 250);
+    return "error";
   }
 }
 
 function downloadBlob(content, filename, type) {
   if (saveViaAndroidCreateDocument(content, filename, type)) {
     return true;
+  }
+  triggerBrowserBlobDownload(content, filename, type);
+  return false;
+}
+
+function triggerBrowserBlobDownload(content, filename, type) {
+  if (typeof Blob === "undefined" || typeof URL === "undefined" || typeof URL.createObjectURL !== "function") {
+    throw new Error("Download API unavailable");
   }
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
@@ -7235,208 +7557,569 @@ function downloadBlob(content, filename, type) {
   a.rel = "noopener";
   a.style.display = "none";
   document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    a.remove();
-    URL.revokeObjectURL(url);
-  }, 15000);
-  return false;
+  try {
+    a.click();
+  } finally {
+    setTimeout(() => {
+      a.remove();
+      try { URL.revokeObjectURL(url); } catch {}
+    }, 15000);
+  }
+}
+
+async function exportPDFSummary() {
+  if (!acquireFileOpLock("pdf")) return;
+  haptic(10);
+  try {
+    await yieldToMain();
+    const pdfBytes = buildFinancialSummaryPDF();
+    if (!(pdfBytes instanceof Uint8Array) || !pdfBytes.length) {
+      throw new Error("Empty PDF output");
+    }
+    const filename = `asbily-financial-summary-${todayStr()}.pdf`;
+    const bridgeStatus = await saveViaAndroidCreateDocumentAsync(pdfBytes, filename, "application/pdf");
+    if (bridgeStatus === "dispatched") {
+      if (activeFileOp) activeFileOp.pendingBridge = true;
+      showSnackbar("Choose location to save PDF...");
+      return;
+    }
+    if (bridgeStatus === "error") {
+      throw new Error("Android bridge PDF save error");
+    }
+    triggerBrowserBlobDownload(pdfBytes, filename, "application/pdf");
+    releaseFileOpLock();
+    showSnackbar("PDF download started — check your Downloads folder", "Print", () => {
+      try { window.print(); } catch {}
+    }, 4500);
+  } catch {
+    releaseFileOpLock();
+    showSnackbar("PDF export failed.", "Print", () => {
+      try { window.print(); } catch {}
+    }, 4500);
+  }
 }
 
 function sanitizeCsvCell(v, numeric = false) {
   let s = String(v ?? "");
-  if (!numeric && /^[=+\-@\t\r]/.test(s)) {
+  if (numeric) {
+    const n = Number(s);
+    s = Number.isFinite(n) ? n.toFixed(2) : "0.00";
+  } else if (/^[\s\u00A0]*[=+\-@\t\r]/.test(s)) {
     s = "'" + s;
   }
   return `"${s.replace(/"/g, '""')}"`;
 }
 
-function exportCSV() {
+async function exportCSV() {
   if (!transactions.length) {
     showSnackbar("No transactions to export");
     return;
   }
+  if (!acquireFileOpLock("csv")) return;
   haptic(8);
-  const rows = [["ID", "Type", "Amount", "Currency", "Title", "Category", "Wallet", "Date", "Note"]];
-  const sorted = [...transactions].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  sorted.forEach(t => rows.push([
-    t.id, t.type, Number(t.amount).toFixed(2), settings.currency, t.title, t.category, getWalletName(t.walletId), t.date, t.note || ""
-  ]));
-  const csv = rows.map((r, rIdx) => r.map((cell, cIdx) => sanitizeCsvCell(cell, rIdx > 0 && cIdx === 2)).join(",")).join("\r\n");
-  const usedAndroid = downloadBlob("\uFEFF" + csv, `asbily-ledger-${todayStr()}.csv`, "text/csv;charset=utf-8");
-  showSnackbar(usedAndroid ? "Choose location to save CSV..." : `Exported ${transactions.length} record(s) to CSV`);
+  try {
+    await yieldToMain();
+    const rows = [["ID", "Type", "Amount", "Currency", "Title", "Category", "Wallet", "Date", "Note"]];
+    const sorted = [...transactions].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+    for (let i = 0; i < sorted.length; i++) {
+      const t = sorted[i];
+      rows.push([
+        t.id || "",
+        t.type || "expense",
+        Number(t.amount || 0).toFixed(2),
+        settings.currency || "BDT",
+        t.title || "",
+        t.category || "",
+        getWalletName(t.walletId),
+        t.date || "",
+        t.note || ""
+      ]);
+      if (i > 0 && i % 1000 === 0) await yieldToMain();
+    }
+    const csv = rows.map((r, rIdx) => r.map((cell, cIdx) => sanitizeCsvCell(cell, rIdx > 0 && cIdx === 2)).join(",")).join("\r\n");
+    const filename = `asbily-ledger-${todayStr()}.csv`;
+    const payload = "\uFEFF" + csv;
+    const bridgeStatus = await saveViaAndroidCreateDocumentAsync(payload, filename, "text/csv;charset=utf-8");
+    if (bridgeStatus === "dispatched") {
+      if (activeFileOp) activeFileOp.pendingBridge = true;
+      showSnackbar("Choose location to save CSV...");
+      return;
+    }
+    if (bridgeStatus === "error") {
+      throw new Error("Android bridge CSV save error");
+    }
+    triggerBrowserBlobDownload(payload, filename, "text/csv;charset=utf-8");
+    releaseFileOpLock();
+    showSnackbar(`CSV download started (${transactions.length} records)`);
+  } catch {
+    releaseFileOpLock();
+    showSnackbar("CSV export failed.");
+  }
 }
 
-function exportJSONBackup() {
-  haptic(8);
-  const payload = {
-    app: "Asbily Expense Tracker",
-    packageName: "com.asbily.expensetracker",
-    appVersion: "1.0.0",
-    version: 4,
-    exportedAt: new Date().toISOString(),
-    counts: {
-      transactions: transactions.length,
-      deletedTransactions: deletedTransactions.length,
-      wallets: wallets.length,
-      recurringItems: recurringItems.length
-    },
-    transactions,
-    deletedTransactions,
-    categories,
-    wallets,
-    recurringItems,
-    settings: { ...settings, pin: "", secQuestion: "", secAnswer: "" }
+function sanitizeCategoryBudgets(rawBudgets) {
+  const clean = {};
+  if (!rawBudgets || typeof rawBudgets !== "object" || Array.isArray(rawBudgets)) return clean;
+  Object.keys(rawBudgets).forEach(k => {
+    if (k === "__proto__" || k === "constructor" || k === "prototype") return;
+    const name = String(k || "").trim().slice(0, 28);
+    const val = Number(rawBudgets[k]);
+    if (name && Number.isFinite(val) && val >= 0) {
+      clean[name] = Math.round(val * 100) / 100;
+    }
+  });
+  return clean;
+}
+
+function buildSafeSettingsBackupPayload() {
+  return {
+    currency: SYMBOLS[settings.currency] ? settings.currency : "BDT",
+    numFormat: ["bn", "en"].includes(settings.numFormat) ? settings.numFormat : "bn",
+    dark: Boolean(settings.dark),
+    haptics: settings.haptics !== undefined ? Boolean(settings.haptics) : true,
+    accent: ["obsidian", "emerald", "cobalt", "teal"].includes(settings.accent) ? settings.accent : "obsidian",
+    budget: Number.isFinite(Number(settings.budget)) && Number(settings.budget) >= 0 ? Number(settings.budget) : 0,
+    categoryBudgets: sanitizeCategoryBudgets(settings.categoryBudgets),
+    autoLockMins: [0, 1, 5, 15].includes(Number(settings.autoLockMins)) ? Number(settings.autoLockMins) : 0,
+    mobileNotifs: settings.mobileNotifs !== undefined ? Boolean(settings.mobileNotifs) : true
   };
-  const usedAndroid = downloadBlob(JSON.stringify(payload, null, 2), `asbily-backup-${todayStr()}.json`, "application/json;charset=utf-8");
-  showSnackbar(usedAndroid ? "Choose location to save backup..." : "JSON backup saved");
 }
 
-function normalizeRestoredTx(raw, fallbackWalletId) {
+async function exportJSONBackup() {
+  if (!acquireFileOpLock("json")) return;
+  haptic(8);
+  try {
+    await yieldToMain();
+    if (!Array.isArray(transactions) || !Array.isArray(deletedTransactions) || !Array.isArray(wallets) || !Array.isArray(recurringItems) || !categories || !Array.isArray(categories.income) || !Array.isArray(categories.expense)) {
+      throw new Error("Invalid state for backup");
+    }
+    const payload = {
+      app: "Asbily Expense Tracker",
+      packageName: "com.asbily.expensetracker",
+      appVersion: "1.0.0",
+      version: BACKUP_FORMAT_VERSION,
+      backupVersion: BACKUP_FORMAT_VERSION,
+      exportedAt: new Date().toISOString(),
+      counts: {
+        transactions: transactions.length,
+        deletedTransactions: deletedTransactions.length,
+        wallets: wallets.length,
+        recurringItems: recurringItems.length
+      },
+      transactions,
+      deletedTransactions,
+      categories,
+      wallets,
+      recurringItems,
+      settings: buildSafeSettingsBackupPayload()
+    };
+    const jsonText = JSON.stringify(payload, null, 2);
+    if (!jsonText || jsonText.length < 10) {
+      throw new Error("Backup serialization failed");
+    }
+    const filename = `asbily-backup-${todayStr()}.json`;
+    const bridgeStatus = await saveViaAndroidCreateDocumentAsync(jsonText, filename, "application/json;charset=utf-8");
+    if (bridgeStatus === "dispatched") {
+      if (activeFileOp) activeFileOp.pendingBridge = true;
+      showSnackbar("Choose location to save backup...");
+      return;
+    }
+    if (bridgeStatus === "error") {
+      throw new Error("Android bridge backup save error");
+    }
+    triggerBrowserBlobDownload(jsonText, filename, "application/json;charset=utf-8");
+    releaseFileOpLock();
+    showSnackbar("Backup download started");
+  } catch {
+    releaseFileOpLock();
+    showSnackbar("Backup failed.");
+  }
+}
+
+function isValidIsoDateStr(val) {
+  const s = String(val || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const [y, m, d] = s.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+}
+
+function normalizeRestoredTx(raw, fallbackWalletId, validWalletIds = null) {
   if (!raw || typeof raw !== "object") return null;
   const amount = Number(raw.amount);
   const type = raw.type === "income" ? "income" : raw.type === "expense" ? "expense" : null;
-  if (!type || !Number.isFinite(amount) || amount <= 0) return null;
+  if (!type || !Number.isFinite(amount) || amount <= 0 || amount > 1e12) return null;
+  const rawWalletId = String(raw.walletId || "").trim().slice(0, 64);
+  const walletId = (rawWalletId && (!validWalletIds || validWalletIds.has(rawWalletId))) ? rawWalletId : fallbackWalletId;
+  const createdAtNum = Number(raw.createdAt);
   return {
-    id: String(raw.id || uid()),
+    id: String(raw.id || "").trim().slice(0, 80) || uid("tx"),
     type,
-    amount,
-    title: String(raw.title || raw.category || "Entry").slice(0, 80),
-    category: String(raw.category || (type === "income" ? "Other Income" : "Other Expense")).slice(0, 40),
-    walletId: String(raw.walletId || fallbackWalletId),
-    date: /^\d{4}-\d{2}-\d{2}$/.test(String(raw.date || "")) ? String(raw.date) : todayStr(),
+    amount: Math.round(amount * 100) / 100,
+    title: String(raw.title || raw.category || "Entry").trim().slice(0, 80) || "Entry",
+    category: String(raw.category || (type === "income" ? "Other Income" : "Other Expense")).trim().slice(0, 40) || (type === "income" ? "Other Income" : "Other Expense"),
+    walletId,
+    date: isValidIsoDateStr(raw.date) ? String(raw.date) : todayStr(),
     note: String(raw.note || "").slice(0, 200),
-    createdAt: Number(raw.createdAt) || Date.now()
+    createdAt: Number.isFinite(createdAtNum) && createdAtNum > 0 ? createdAtNum : Date.now()
+  };
+}
+
+function normalizeRestoredRecurring(raw, fallbackWalletId, validWalletIds = null) {
+  if (!raw || typeof raw !== "object") return null;
+  const amount = Number(raw.amount);
+  const type = raw.type === "income" ? "income" : raw.type === "expense" ? "expense" : null;
+  const title = String(raw.title || "").trim().slice(0, 80);
+  if (!type || !Number.isFinite(amount) || amount <= 0 || amount > 1e12 || !title) return null;
+  const rawWalletId = String(raw.walletId || "").trim().slice(0, 64);
+  const walletId = (rawWalletId && (!validWalletIds || validWalletIds.has(rawWalletId))) ? rawWalletId : fallbackWalletId;
+  const freq = raw.freq === "weekly" ? "weekly" : "monthly";
+  return {
+    id: String(raw.id || "").trim().slice(0, 80) || uid("rec"),
+    type,
+    amount: Math.round(amount * 100) / 100,
+    title,
+    category: String(raw.category || (type === "income" ? "Other Income" : "Other Expense")).trim().slice(0, 40) || (type === "income" ? "Other Income" : "Other Expense"),
+    walletId,
+    freq,
+    nextDate: isValidIsoDateStr(raw.nextDate) ? String(raw.nextDate) : todayStr()
   };
 }
 
 function processImportedJSONText(rawText) {
+  const text = String(rawText || "");
+  if (!text.trim()) {
+    showSnackbar("Invalid backup file.");
+    return;
+  }
+  if (text.length > MAX_BACKUP_FILE_BYTES) {
+    showSnackbar("Backup file is too large.");
+    return;
+  }
+
+  let data;
   try {
-    const data = JSON.parse(String(rawText || ""));
-    if (!data || !Array.isArray(data.transactions) || !data.categories || !Array.isArray(data.categories.income) || !Array.isArray(data.categories.expense)) {
-      throw new Error("Invalid backup structure");
+    data = JSON.parse(text);
+  } catch {
+    showSnackbar("Invalid backup file.");
+    return;
+  }
+
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    showSnackbar("Invalid backup file.");
+    return;
+  }
+
+  if (typeof data.packageName === "string" && data.packageName.trim() && data.packageName.trim() !== "com.asbily.expensetracker") {
+    showSnackbar("Invalid backup file.");
+    return;
+  }
+  if (typeof data.app === "string" && data.app.trim() && !data.app.toLowerCase().includes("asbily")) {
+    showSnackbar("Invalid backup file.");
+    return;
+  }
+
+  const rawVersion = data.backupVersion !== undefined ? data.backupVersion : data.version;
+  if (rawVersion !== undefined && rawVersion !== null) {
+    const verNum = Number(rawVersion);
+    if (!Number.isInteger(verNum) || verNum < 1 || verNum > BACKUP_FORMAT_VERSION) {
+      showSnackbar("Unsupported backup version.");
+      return;
     }
+  }
 
-    const restoredWallets = (Array.isArray(data.wallets) && data.wallets.length)
-      ? data.wallets.filter(w => w && w.id && w.name).map(w => ({
-          id: String(w.id),
-          name: w.id === "wal_mfs" && w.name === "bKash / Nagad" ? "Mobile Banking" : String(w.name).slice(0, 28),
-          icon: ICONS[w.icon] ? w.icon : "wallet"
-        }))
-      : structuredClone(DEFAULT_WALLETS);
-    const fallbackWalId = restoredWallets[0]?.id || "wal_cash";
+  if (!Array.isArray(data.transactions) || !data.categories || typeof data.categories !== "object" || !Array.isArray(data.categories.income) || !Array.isArray(data.categories.expense)) {
+    showSnackbar("Invalid backup file.");
+    return;
+  }
 
-    const restoredTx = data.transactions
-      .map(t => normalizeRestoredTx(t, fallbackWalId))
-      .filter(Boolean);
-
-    const restoredDeleted = Array.isArray(data.deletedTransactions)
-      ? data.deletedTransactions.map(t => {
-          const norm = normalizeRestoredTx(t, fallbackWalId);
-          return norm ? { ...norm, deletedAt: Number(t.deletedAt) || Date.now() } : null;
-        }).filter(Boolean)
-      : [];
-
-    const restoredCats = {
-      income: data.categories.income.length ? data.categories.income.filter(c => c && c.name).map(c => ({ name: String(c.name).slice(0, 28), icon: ICONS[c.icon] ? c.icon : "tag" })) : structuredClone(DEFAULT_CATS.income),
-      expense: data.categories.expense.length ? data.categories.expense.filter(c => c && c.name).map(c => ({ name: String(c.name).slice(0, 28), icon: ICONS[c.icon] ? c.icon : "tag" })) : structuredClone(DEFAULT_CATS.expense)
-    };
-    if (!restoredCats.income.length) restoredCats.income = structuredClone(DEFAULT_CATS.income);
-    if (!restoredCats.expense.length) restoredCats.expense = structuredClone(DEFAULT_CATS.expense);
-
-    const restoredRecurring = Array.isArray(data.recurringItems)
-      ? data.recurringItems.filter(r => r && r.id && Number(r.amount) > 0)
-      : [];
-
-    openConfirmSheet(
-      "Restore Backup",
-      `Import ${restoredTx.length} active record(s), ${restoredDeleted.length} deleted item(s), and ${restoredWallets.length} wallet(s)? Current local data will be replaced.`,
-      "Restore",
-      () => {
-        transactions = restoredTx;
-        deletedTransactions = restoredDeleted;
-        categories = restoredCats;
-        wallets = restoredWallets;
-        recurringItems = restoredRecurring;
-        if (data.settings && typeof data.settings === "object") {
-          settings = {
-            ...settings,
-            currency: SYMBOLS[data.settings.currency] ? data.settings.currency : settings.currency,
-            numFormat: ["bn", "en"].includes(data.settings.numFormat) ? data.settings.numFormat : settings.numFormat,
-            dark: data.settings.dark !== undefined ? Boolean(data.settings.dark) : settings.dark,
-            haptics: data.settings.haptics !== undefined ? Boolean(data.settings.haptics) : settings.haptics,
-            accent: ["obsidian", "emerald", "cobalt", "teal"].includes(data.settings.accent) ? data.settings.accent : settings.accent,
-            budget: Number.isFinite(Number(data.settings.budget)) && Number(data.settings.budget) >= 0 ? Number(data.settings.budget) : settings.budget,
-            categoryBudgets: data.settings.categoryBudgets && typeof data.settings.categoryBudgets === "object" ? data.settings.categoryBudgets : settings.categoryBudgets,
-            pin: settings.pin,
-            secQuestion: settings.secQuestion,
-            secAnswer: settings.secAnswer
+  const seenWalletIds = new Set();
+  const parsedWallets = Array.isArray(data.wallets)
+    ? data.wallets
+        .map(w => {
+          if (!w || typeof w !== "object") return null;
+          const id = String(w.id || "").trim().slice(0, 64);
+          const rawName = String(w.name || "").trim().slice(0, 28);
+          if (!id || !rawName || seenWalletIds.has(id)) return null;
+          seenWalletIds.add(id);
+          return {
+            id,
+            name: id === "wal_mfs" && rawName === "bKash / Nagad" ? "Mobile Banking" : rawName,
+            icon: ICONS[w.icon] ? w.icon : "wallet"
           };
-        }
-        persistAll();
+        })
+        .filter(Boolean)
+    : [];
+
+  const restoredWallets = parsedWallets.length ? parsedWallets : structuredClone(DEFAULT_WALLETS);
+  const validWalletIds = new Set(restoredWallets.map(w => w.id));
+  const fallbackWalId = restoredWallets[0]?.id || "wal_cash";
+
+  const seenTxIds = new Set();
+  const restoredTx = data.transactions
+    .map(t => normalizeRestoredTx(t, fallbackWalId, validWalletIds))
+    .filter(Boolean)
+    .map(t => {
+      if (seenTxIds.has(t.id)) {
+        t.id = uid("tx");
+      }
+      seenTxIds.add(t.id);
+      return t;
+    });
+
+  const restoredDeleted = Array.isArray(data.deletedTransactions)
+    ? data.deletedTransactions
+        .map(t => {
+          const norm = normalizeRestoredTx(t, fallbackWalId, validWalletIds);
+          if (!norm) return null;
+          if (seenTxIds.has(norm.id)) {
+            norm.id = uid("tx");
+          }
+          seenTxIds.add(norm.id);
+          const rawDel = t.deletedAt;
+          let delVal = Date.now();
+          if (typeof rawDel === "string" && isValidIsoDateStr(rawDel.slice(0, 10))) {
+            delVal = rawDel;
+          } else {
+            const delNum = Number(rawDel);
+            if (Number.isFinite(delNum) && delNum > 0) delVal = delNum;
+          }
+          return { ...norm, deletedAt: delVal };
+        })
+        .filter(Boolean)
+    : [];
+
+  const dedupeCats = (arr) => {
+    const seen = new Set();
+    const out = [];
+    for (const c of arr) {
+      if (!c || typeof c !== "object") continue;
+      const name = String(c.name || "").trim().slice(0, 28);
+      if (!name) continue;
+      const key = name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ name, icon: ICONS[c.icon] ? c.icon : "tag" });
+    }
+    return out;
+  };
+
+  const restoredCats = {
+    income: dedupeCats(data.categories.income),
+    expense: dedupeCats(data.categories.expense)
+  };
+  if (!restoredCats.income.length) restoredCats.income = structuredClone(DEFAULT_CATS.income);
+  if (!restoredCats.expense.length) restoredCats.expense = structuredClone(DEFAULT_CATS.expense);
+
+  const seenRecIds = new Set();
+  const restoredRecurring = Array.isArray(data.recurringItems)
+    ? data.recurringItems
+        .map(r => normalizeRestoredRecurring(r, fallbackWalId, validWalletIds))
+        .filter(Boolean)
+        .map(r => {
+          if (seenRecIds.has(r.id)) {
+            r.id = uid("rec");
+          }
+          seenRecIds.add(r.id);
+          return r;
+        })
+    : [];
+
+  openConfirmSheet(
+    "Restore Backup",
+    `Import ${restoredTx.length} active record(s), ${restoredDeleted.length} deleted item(s), and ${restoredWallets.length} wallet(s)? Current local data will be replaced.`,
+    "Restore",
+    () => {
+      const prevSnapshot = {
+        transactions,
+        deletedTransactions,
+        categories,
+        wallets,
+        recurringItems,
+        settings
+      };
+      transactions = restoredTx;
+      deletedTransactions = restoredDeleted;
+      categories = restoredCats;
+      wallets = restoredWallets;
+      recurringItems = restoredRecurring;
+      if (data.settings && typeof data.settings === "object" && !Array.isArray(data.settings)) {
+        const s = data.settings;
+        settings = {
+          ...settings,
+          currency: SYMBOLS[s.currency] ? s.currency : settings.currency,
+          numFormat: ["bn", "en"].includes(s.numFormat) ? s.numFormat : settings.numFormat,
+          dark: s.dark !== undefined ? Boolean(s.dark) : settings.dark,
+          haptics: s.haptics !== undefined ? Boolean(s.haptics) : settings.haptics,
+          accent: ["obsidian", "emerald", "cobalt", "teal"].includes(s.accent) ? s.accent : settings.accent,
+          budget: Number.isFinite(Number(s.budget)) && Number(s.budget) >= 0 ? Math.round(Number(s.budget) * 100) / 100 : settings.budget,
+          categoryBudgets: s.categoryBudgets && typeof s.categoryBudgets === "object" && !Array.isArray(s.categoryBudgets) ? sanitizeCategoryBudgets(s.categoryBudgets) : settings.categoryBudgets,
+          autoLockMins: [0, 1, 5, 15].includes(Number(s.autoLockMins)) ? Number(s.autoLockMins) : settings.autoLockMins,
+          mobileNotifs: s.mobileNotifs !== undefined ? Boolean(s.mobileNotifs) : settings.mobileNotifs,
+          pin: prevSnapshot.settings.pin,
+          secQuestion: prevSnapshot.settings.secQuestion,
+          secAnswer: prevSnapshot.settings.secAnswer
+        };
+      }
+      if (!persistAll()) {
+        transactions = prevSnapshot.transactions;
+        deletedTransactions = prevSnapshot.deletedTransactions;
+        categories = prevSnapshot.categories;
+        wallets = prevSnapshot.wallets;
+        recurringItems = prevSnapshot.recurringItems;
+        settings = prevSnapshot.settings;
         renderSettingsUI();
         renderAll();
-        showSnackbar(`Restored ${transactions.length} record(s)`);
+        showSnackbar("Storage unavailable.");
+        return;
       }
-    );
-  } catch {
-    showSnackbar("Invalid JSON backup file");
-  }
+      renderSettingsUI();
+      renderAll();
+      showSnackbar("Restore completed.");
+    }
+  );
 }
 
 function triggerRestoreBackup() {
+  if (!acquireFileOpLock("restore")) return;
   haptic(8);
   const bridge = getAndroidBridge();
   try {
     if (bridge && typeof bridge.openDocument === "function") {
+      if (activeFileOp) activeFileOp.pendingBridge = true;
       bridge.openDocument("application/json");
       return;
     }
     if (bridge && typeof bridge.openBackup === "function") {
+      if (activeFileOp) activeFileOp.pendingBridge = true;
       bridge.openBackup();
       return;
     }
-  } catch {}
-  document.getElementById("restoreJsonInput").click();
+  } catch {
+    releaseFileOpLock();
+    showSnackbar("File reading failed.");
+    return;
+  }
+
+  const input = document.getElementById("restoreJsonInput");
+  if (!input) {
+    releaseFileOpLock();
+    showSnackbar("File reading failed.");
+    return;
+  }
+  input.value = "";
+  if (activeFileOp) activeFileOp.pendingBridge = true;
+  input.addEventListener("cancel", () => {
+    input.value = "";
+    releaseFileOpLock();
+    showSnackbar("File selection cancelled.");
+  }, { once: true });
+  input.click();
 }
 
 window.onAndroidDocumentOpened = function (content, isBase64 = false) {
-  try {
-    const text = isBase64 ? base64ToUtf8(String(content || "")) : String(content || "");
-    if (!text.trim()) {
-      showSnackbar("Selected backup file is empty");
-      return;
-    }
-    processImportedJSONText(text);
-  } catch {
-    showSnackbar("Could not read selected backup file");
+  releaseFileOpLock();
+  if (content === null || content === undefined) {
+    showSnackbar("File selection cancelled.");
+    return;
   }
+  setTimeout(() => {
+    try {
+      const rawStr = String(content);
+      if (rawStr.length > MAX_BACKUP_FILE_BYTES * 1.4) {
+        showSnackbar("Backup file is too large.");
+        return;
+      }
+      const text = isBase64 ? base64ToUtf8(rawStr) : rawStr;
+      if (!text.trim()) {
+        showSnackbar("Invalid backup file.");
+        return;
+      }
+      processImportedJSONText(text);
+    } catch {
+      showSnackbar("File reading failed.");
+    }
+  }, 0);
 };
 
 window.onAndroidDocumentSaved = function (success, message) {
+  const kind = activeFileOp ? activeFileOp.kind : "json";
+  releaseFileOpLock();
+  const msgStr = typeof message === "string" ? message.trim() : "";
   if (success) {
-    showSnackbar(message || "Backup saved to device");
-  } else if (message) {
-    showSnackbar(message);
+    if (msgStr) {
+      showSnackbar(msgStr);
+    } else if (kind === "pdf") {
+      showSnackbar("PDF summary saved successfully.");
+    } else if (kind === "csv") {
+      showSnackbar("CSV exported successfully.");
+    } else {
+      showSnackbar("Backup saved successfully.");
+    }
+    return;
+  }
+  if (/cancel/i.test(msgStr)) {
+    showSnackbar("File selection cancelled.");
+    return;
+  }
+  if (msgStr) {
+    showSnackbar(msgStr);
+  } else if (kind === "pdf") {
+    showSnackbar("PDF export failed.");
+  } else if (kind === "csv") {
+    showSnackbar("CSV export failed.");
+  } else {
+    showSnackbar("Backup failed.");
   }
 };
 
 function importJSONBackup(e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
+  const input = e && e.target ? e.target : document.getElementById("restoreJsonInput");
+  const file = input && input.files ? input.files[0] : null;
+  if (!file) {
+    if (input) input.value = "";
+    releaseFileOpLock();
+    showSnackbar("File selection cancelled.");
+    return;
+  }
+  if (file.size === 0) {
+    input.value = "";
+    releaseFileOpLock();
+    showSnackbar("Invalid backup file.");
+    return;
+  }
+  if (file.size > MAX_BACKUP_FILE_BYTES) {
+    input.value = "";
+    releaseFileOpLock();
+    showSnackbar("Backup file is too large.");
+    return;
+  }
   const reader = new FileReader();
   reader.onerror = () => {
-    e.target.value = "";
-    showSnackbar("Could not read backup file");
+    input.value = "";
+    releaseFileOpLock();
+    showSnackbar("File reading failed.");
+  };
+  reader.onabort = () => {
+    input.value = "";
+    releaseFileOpLock();
+    showSnackbar("File reading failed.");
   };
   reader.onload = () => {
-    try {
-      processImportedJSONText(String(reader.result || ""));
-    } finally {
-      e.target.value = "";
-    }
+    const resultText = String(reader.result || "");
+    input.value = "";
+    setTimeout(() => {
+      releaseFileOpLock();
+      processImportedJSONText(resultText);
+    }, 0);
   };
-  reader.readAsText(file);
+  try {
+    reader.readAsText(file, "UTF-8");
+  } catch {
+    input.value = "";
+    releaseFileOpLock();
+    showSnackbar("File reading failed.");
+  }
 }
 
 function confirmWipeAll() {
@@ -7445,12 +8128,26 @@ function confirmWipeAll() {
     "Permanently delete all transactions, deleted records, recurring schedules, custom categories, wallets, and budgets? This cannot be undone.",
     "Wipe Everything",
     () => {
+      if (!isStorageAvailable()) {
+        showSnackbar("Storage unavailable.");
+        return;
+      }
+      const prevSnapshot = {
+        transactions,
+        deletedTransactions,
+        categories,
+        wallets,
+        recurringItems,
+        settings
+      };
       transactions = [];
       deletedTransactions = [];
       categories = structuredClone(DEFAULT_CATS);
       wallets = structuredClone(DEFAULT_WALLETS);
       recurringItems = [];
       settings = { ...settings, budget: 0, categoryBudgets: {} };
+      editingTxId = null;
+      editingCatName = null;
       activityTypeFilter = "all";
       activityPeriodFilter = "all";
       activityWalletFilter = "all";
@@ -7458,7 +8155,20 @@ function confirmWipeAll() {
       homeShowAllTime = false;
       const searchInput = document.getElementById("ledgerSearchInput");
       if (searchInput) searchInput.value = "";
-      persistAll();
+
+      if (!persistAll()) {
+        transactions = prevSnapshot.transactions;
+        deletedTransactions = prevSnapshot.deletedTransactions;
+        categories = prevSnapshot.categories;
+        wallets = prevSnapshot.wallets;
+        recurringItems = prevSnapshot.recurringItems;
+        settings = prevSnapshot.settings;
+        renderSettingsUI();
+        renderAll();
+        showSnackbar("Storage unavailable.");
+        return;
+      }
+      try { localStorage.removeItem(KEYS.MOBILE_ALERTS_SENT); } catch {}
       renderSettingsUI();
       renderAll();
       showSnackbar("All local data wiped");
@@ -7472,15 +8182,33 @@ function updateBackupStatsSummary() {
   el.textContent = `${transactions.length} active · ${deletedTransactions.length} deleted · ${wallets.length} wallets · ${recurringItems.length} schedules`;
 }
 
-function renderAll() {
-  renderHome();
-  renderActivity();
-  renderAnalytics();
-  renderBudget();
-  renderCategories();
-  renderRecurring();
-  renderWalletsManager();
-  renderDeleted();
+function updateMoreSubLabels() {
+  const wSub = document.getElementById("moreWalletsSub");
+  if (wSub) wSub.textContent = `${wallets.length} active wallet${wallets.length === 1 ? "" : "s"}`;
+  const rSub = document.getElementById("moreRecurringSub");
+  if (rSub) rSub.textContent = `${recurringItems.length} active schedule${recurringItems.length === 1 ? "" : "s"}`;
+  const dCount = deletedTransactions.length;
+  const dSub = document.getElementById("moreDeletedSub");
+  if (dSub) {
+    dSub.textContent = dCount ? `${dCount} deleted record${dCount === 1 ? "" : "s"}` : "No deleted records";
+  }
+  const chipLabel = document.getElementById("activityDeletedChipLabel");
+  if (chipLabel) {
+    chipLabel.textContent = dCount ? `Deleted (${dCount})` : "Deleted";
+  }
+}
+
+function renderAll(opts = {}) {
+  const forceAll = Boolean(opts && opts.forceAll);
+  if (forceAll || currentView === "home") renderHome();
+  if (forceAll || currentView === "activity") renderActivity();
+  if (forceAll || currentView === "analytics") renderAnalytics();
+  if (forceAll || currentView === "budget") renderBudget();
+  if (forceAll || currentView === "categories") renderCategories();
+  if (forceAll || currentView === "recurring") renderRecurring();
+  if (forceAll || currentView === "wallets") renderWalletsManager();
+  if (forceAll || currentView === "deleted") renderDeleted();
+  updateMoreSubLabels();
   updateNotificationBadge();
   updateBackupStatsSummary();
 }
