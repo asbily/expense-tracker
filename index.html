@@ -548,9 +548,34 @@ main {
 }
 
 .alert-banner.danger {
-  background: var(--md-expense-container);
-  color: var(--md-expense);
-  border-color: rgba(198, 54, 54, 0.25);
+  background: var(--md-surface-container-low);
+  color: var(--md-on-surface);
+  border-color: var(--md-outline-variant);
+  border-left: 3px solid var(--md-primary);
+}
+
+.exec-status-strip {
+  border-radius: 12px;
+  padding: 11px 14px;
+  margin-top: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--md-surface-container-low);
+  color: var(--md-on-surface);
+  border: 1px solid var(--md-outline-variant);
+  border-left: 3px solid var(--md-primary);
+  cursor: pointer;
+}
+
+.exec-status-strip svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: var(--md-on-surface-variant);
 }
 
 .alert-banner svg {
@@ -676,7 +701,7 @@ main {
 }
 
 /* ==========================================================================
-   HERO BALANCE CARD — JET-BLACK BRUSHED TITANIUM (FRONT & BACK)
+   HERO BALANCE CARD — OBSIDIAN TITANIUM EXECUTIVE INSTRUMENT (FRONT & BACK)
    ========================================================================== */
 .hero-card-scene {
   perspective: 1200px;
@@ -698,25 +723,28 @@ main {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.014) 0px,
-      rgba(255, 255, 255, 0.014) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(128deg, rgba(255, 255, 255, 0.065) 0%, rgba(255, 255, 255, 0) 34%, rgba(255, 255, 255, 0) 68%, rgba(255, 255, 255, 0.03) 100%),
-    linear-gradient(160deg, #0c0c0e 0%, #050507 52%, #000000 100%);
+    radial-gradient(125% 95% at 0% 0%, rgba(255, 255, 255, 0.085) 0%, rgba(255, 255, 255, 0.015) 38%, transparent 64%),
+    radial-gradient(90% 80% at 100% 100%, rgba(255, 255, 255, 0.04) 0%, transparent 60%),
+    linear-gradient(165deg, #111318 0%, #08090d 54%, #020304 100%);
   color: #f4f4f5;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 18px 18px 16px;
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-    0 18px 40px -14px rgba(0, 0, 0, 0.72);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    0 20px 44px -16px rgba(0, 0, 0, 0.78);
+}
+
+.hero-card::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.035);
+  pointer-events: none;
 }
 
 .hero-card-back {
@@ -744,10 +772,25 @@ main {
   z-index: 1;
 }
 
+.hero-brand-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hero-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.72);
+  flex-shrink: 0;
+}
+
 .hero-label {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
-  letter-spacing: 1.35px;
+  letter-spacing: 1.55px;
   text-transform: uppercase;
   color: #a1a1aa;
   white-space: nowrap;
@@ -763,9 +806,9 @@ main {
 }
 
 .hero-tool-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.13);
   background: rgba(255, 255, 255, 0.04);
   color: #a1a1aa;
@@ -777,26 +820,26 @@ main {
 .hero-tool-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.26);
 }
 
 .hero-tool-btn svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
 }
 
 .period-stepper {
   display: inline-flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
 }
 
 .stepper-btn {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border: none;
   background: transparent;
   color: #a1a1aa;
@@ -811,36 +854,43 @@ main {
 }
 
 .stepper-btn svg {
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
 }
 
 .stepper-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.25px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.35px;
   padding: 0 9px;
   border: none;
-  border-left: 1px solid rgba(255, 255, 255, 0.09);
-  border-right: 1px solid rgba(255, 255, 255, 0.09);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
   color: #f4f4f5;
-  height: 28px;
+  height: 26px;
   white-space: nowrap;
 }
 
 .hero-balance-row {
   position: relative;
   z-index: 1;
-  margin: 16px 0 14px;
+  margin: 18px 0 12px;
+}
+
+.hero-balance-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .hero-balance {
-  font-size: clamp(28px, 8vw, 35px);
+  font-size: clamp(28px, 8.2vw, 36px);
   font-weight: 800;
-  letter-spacing: -1.3px;
-  line-height: 1.06;
-  background: linear-gradient(180deg, #ffffff 0%, #d4d4d8 100%);
+  letter-spacing: -1.4px;
+  line-height: 1.04;
+  background: linear-gradient(180deg, #ffffff 0%, #d4d8e0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -848,10 +898,24 @@ main {
 }
 
 .hero-balance.is-negative {
-  background: linear-gradient(180deg, #fecaca 0%, #f87171 100%);
+  background: linear-gradient(180deg, #f8fafc 0%, #c4cad4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.hero-status-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: #d4d4d8;
+  flex-shrink: 0;
+  align-self: center;
 }
 
 .hero-meta-row {
@@ -867,29 +931,41 @@ main {
   font-size: 11px;
   font-weight: 600;
   color: #a1a1aa;
-  letter-spacing: 0.1px;
+  letter-spacing: 0.15px;
 }
 
 .hero-delta-text.up {
-  color: #4ade80;
+  color: #e4e4e7;
 }
 
 .hero-delta-text.down {
-  color: #f87171;
+  color: #a1a1aa;
 }
 
 .hero-tx-caption {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.85px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: #71717a;
 }
 
-.hero-divider {
-  height: 1px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.04));
-  margin-bottom: 13px;
+.hero-flow-track {
+  height: 3px;
+  width: 100%;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.11);
+  overflow: hidden;
+  margin: 12px 0 13px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-flow-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.55) 0%, #ffffff 100%);
+  transition: width 0.35s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .hero-split {
@@ -913,17 +989,30 @@ main {
 
 .hero-stat + .hero-stat {
   padding: 2px 0 2px 14px;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.11);
 }
 
 .hero-stat:hover {
   opacity: 0.85;
 }
 
+.hero-stat-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hero-stat-head svg {
+  width: 11px;
+  height: 11px;
+  color: #a1a1aa;
+  flex-shrink: 0;
+}
+
 .hero-stat-title {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
-  letter-spacing: 1.05px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
   color: #71717a;
 }
@@ -947,12 +1036,12 @@ main {
   text-overflow: ellipsis;
 }
 
-/* Card Back Magnetic Strip & Telemetry Grid */
+/* Card Back Brushed Metallic Strip & Telemetry Grid */
 .hero-mag-stripe {
-  height: 26px;
+  height: 24px;
   margin-top: 14px;
-  background: linear-gradient(180deg, #000000 0%, #121215 50%, #000000 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(90deg, #050608 0%, #1a1d24 45%, #232730 55%, #050608 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -972,13 +1061,13 @@ main {
   grid-template-columns: 1fr 1fr;
   gap: 10px 14px;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .hero-back-cell-label {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 1.15px;
   text-transform: uppercase;
   color: #71717a;
 }
@@ -1010,10 +1099,10 @@ main {
 }
 
 .wallet-pill-card {
-  min-width: 135px;
+  min-width: 138px;
   background: var(--md-surface-container-lowest);
   border: 1px solid var(--md-outline-variant);
-  border-radius: 16px;
+  border-radius: 13px;
   padding: 12px 14px;
   flex-shrink: 0;
   box-shadow: var(--elev-1);
@@ -1023,8 +1112,9 @@ main {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15px;
   color: var(--md-on-surface-variant);
 }
 
@@ -1038,7 +1128,8 @@ main {
   font-size: 15px;
   font-weight: 800;
   margin-top: 6px;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.35px;
+  color: var(--md-on-surface);
 }
 
 /* ==========================================================================
@@ -1054,13 +1145,15 @@ main {
 .kpi-tile {
   background: var(--md-surface-container-low);
   border: 1px solid var(--md-outline-variant);
-  border-radius: 16px;
+  border-radius: 13px;
   padding: 14px;
 }
 
 .kpi-tile-label {
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
   color: var(--md-on-surface-variant);
 }
 
@@ -2436,15 +2529,18 @@ body.dark .snackbar-action {
       <!-- Smart Budget Warning Banner -->
       <div id="homeSmartAlertBanner" style="display:none"></div>
 
-      <!-- Jet-Black Titanium Executive Card (Front & Back) -->
+      <!-- Obsidian Titanium Executive Card (Front & Back) -->
       <div class="hero-card-scene" id="heroCardScene">
         <div class="hero-card-flipper">
           <!-- FRONT FACE -->
           <div class="hero-card hero-card-front">
             <div class="hero-top">
-              <span class="hero-label" id="heroBalanceTitle">Period Net Cash Flow</span>
+              <div class="hero-brand-head">
+                <span class="hero-pulse-dot" aria-hidden="true"></span>
+                <span class="hero-label" id="heroBalanceTitle">PERIOD NET POSITION</span>
+              </div>
               <div class="hero-controls">
-                <button type="button" class="hero-tool-btn" onclick="toggleHeroCardFlip()" aria-label="View Card Back" title="Flip Card">
+                <button type="button" class="hero-tool-btn" onclick="toggleHeroCardFlip()" aria-label="View Card Telemetry" title="Telemetry">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
                   </svg>
@@ -2466,24 +2562,35 @@ body.dark .snackbar-action {
             </div>
 
             <div class="hero-balance-row">
-              <div class="hero-balance num" id="heroNetAmount">৳0.00</div>
+              <div class="hero-balance-top">
+                <div class="hero-balance num" id="heroNetAmount">৳0.00</div>
+                <span class="hero-status-tag num" id="heroStatusTag">BALANCED</span>
+              </div>
               <div class="hero-meta-row">
                 <span class="hero-delta-text num" id="heroDeltaBadge">Baseline Period</span>
                 <span class="hero-tx-caption num" id="heroTxCaption">0 Entries</span>
               </div>
             </div>
 
-            <div class="hero-divider" aria-hidden="true"></div>
+            <div class="hero-flow-track" aria-hidden="true">
+              <div class="hero-flow-fill" id="heroFlowFill"></div>
+            </div>
 
             <div class="hero-split">
               <button type="button" class="hero-stat ripple-host" onclick="openHeroFlowFilter('income')">
-                <span class="hero-stat-title">Total Income</span>
+                <span class="hero-stat-head">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                  <span class="hero-stat-title">Total Inflow</span>
+                </span>
                 <span class="hero-stat-val num" id="heroIncomeAmount">৳0.00</span>
                 <span class="hero-stat-sub num" id="heroIncomeSub">0 entries</span>
               </button>
 
               <button type="button" class="hero-stat ripple-host" onclick="openHeroFlowFilter('expense')">
-                <span class="hero-stat-title">Total Expenses</span>
+                <span class="hero-stat-head">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 7 17 17 7 17"/></svg>
+                  <span class="hero-stat-title">Total Outflow</span>
+                </span>
                 <span class="hero-stat-val num" id="heroExpenseAmount">৳0.00</span>
                 <span class="hero-stat-sub num" id="heroExpenseSub">0 entries</span>
               </button>
@@ -2495,7 +2602,7 @@ body.dark .snackbar-action {
             <div class="hero-mag-stripe" aria-hidden="true"></div>
             <div class="hero-back-body">
               <div class="hero-back-head">
-                <span class="hero-label">ASBILY PRIVATE LEDGER • SUMMARY</span>
+                <span class="hero-label">ASBILY PRIVATE LEDGER · TELEMETRY</span>
                 <button type="button" class="hero-tool-btn" onclick="toggleHeroCardFlip()" aria-label="Return to Card Front" title="Flip to Front">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
@@ -2516,7 +2623,7 @@ body.dark .snackbar-action {
                   <div class="hero-back-cell-val num" id="heroBackSavings">0.0%</div>
                 </div>
                 <div>
-                  <div class="hero-back-cell-label">Primary Wallet</div>
+                  <div class="hero-back-cell-label">Primary Account</div>
                   <div class="hero-back-cell-val num" id="heroBackPrimaryWallet">Cash</div>
                 </div>
               </div>
@@ -2525,8 +2632,8 @@ body.dark .snackbar-action {
         </div>
       </div>
 
-      <!-- Live Loss / Low-Balance Alert Banner -->
-      <div id="homeLossAlertBanner" class="alert-banner danger" style="display:none;margin-top:10px;cursor:pointer" onclick="openNotificationsSheet()"></div>
+      <!-- Executive Deficit / Low-Balance Status Strip -->
+      <div id="homeLossAlertBanner" class="exec-status-strip" style="display:none" onclick="openNotificationsSheet()"></div>
 
       <!-- Multiple Accounts / Wallets Strip -->
       <div class="section-header" style="margin-top:8px">
@@ -5258,6 +5365,11 @@ function renderHome() {
   heroNetEl.textContent = pNet < 0 ? `−${money(Math.abs(pNet))}` : money(pNet);
   heroNetEl.classList.toggle("is-negative", pNet < 0);
 
+  const statusTagEl = document.getElementById("heroStatusTag");
+  if (statusTagEl) {
+    statusTagEl.textContent = pNet > 0 ? "SURPLUS" : (pNet < 0 ? "NET DEFICIT" : "BALANCED");
+  }
+
   document.getElementById("heroIncomeAmount").textContent = money(pTotals.income);
   document.getElementById("heroExpenseAmount").textContent = money(pTotals.expense);
 
@@ -5265,11 +5377,16 @@ function renderHome() {
   const inShare = totalFlow > 0 ? Math.round((pTotals.income / totalFlow) * 100) : 0;
   const outShare = totalFlow > 0 ? 100 - inShare : 0;
 
+  const flowFillEl = document.getElementById("heroFlowFill");
+  if (flowFillEl) {
+    flowFillEl.style.width = totalFlow > 0 ? `${inShare}%` : "0%";
+  }
+
   document.getElementById("heroIncomeSub").textContent = `${pTotals.incomeCount} entr${pTotals.incomeCount === 1 ? "y" : "ies"}${totalFlow > 0 ? ` · ${inShare}%` : ""}`;
   document.getElementById("heroExpenseSub").textContent = `${pTotals.expenseCount} entr${pTotals.expenseCount === 1 ? "y" : "ies"}${totalFlow > 0 ? ` · ${outShare}%` : ""}`;
   document.getElementById("heroTxCaption").textContent = `${periodTxs.length} ${periodTxs.length === 1 ? "ENTRY" : "ENTRIES"}`;
 
-  // Live Loss / Low-Balance Alert Banner on Home
+  // Executive Deficit / Low-Balance Status Strip (Monochrome — no red warning)
   const lossBanner = document.getElementById("homeLossAlertBanner");
   if (lossBanner) {
     const fin = getFinancialAlertState();
@@ -5277,21 +5394,21 @@ function renderHome() {
     const lowWallet = fin.walletAlerts[0];
     if (fin.hasTx && lossVal > 0) {
       lossBanner.style.display = "flex";
-      lossBanner.className = "alert-banner danger";
+      lossBanner.className = "exec-status-strip";
       lossBanner.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span><strong>Loss Alert:</strong> Loss ${money(lossVal)} · Break-even needs ${money(lossVal)} · Profit needs &gt;${money(lossVal)}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span><strong>Deficit Position:</strong> −${money(lossVal)} · Break-even requires ${money(lossVal)}</span>
       `;
     } else if (fin.hasTx && (lowWallet || (fin.monthIn > 0 && fin.monthMarginPct <= 20))) {
       lossBanner.style.display = "flex";
-      lossBanner.className = lowWallet && lowWallet.status === "loss" ? "alert-banner danger" : "alert-banner warn";
+      lossBanner.className = "exec-status-strip";
       const msg = lowWallet
         ? (lowWallet.status === "loss"
-            ? `<strong>${esc(lowWallet.name)} Loss:</strong> Deficit ${money(Math.abs(lowWallet.bal))} · Add &gt;${money(Math.abs(lowWallet.bal))} for profit`
-            : `<strong>Low Balance (${esc(lowWallet.name)}):</strong> ${money(lowWallet.bal)} left before hitting ${money(0)}`)
-        : `<strong>Low Margin Alert:</strong> Only ${money(fin.monthNet)} left before ${esc(fin.curLabel)} enters a loss`;
+            ? `<strong>${esc(lowWallet.name)} Deficit:</strong> −${money(Math.abs(lowWallet.bal))} · Add &gt;${money(Math.abs(lowWallet.bal))} to recover`
+            : `<strong>Low Reserve (${esc(lowWallet.name)}):</strong> ${money(lowWallet.bal)} remaining`)
+        : `<strong>Margin Watch:</strong> ${money(fin.monthNet)} buffer in ${esc(fin.curLabel)}`;
       lossBanner.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         <span>${msg}</span>
       `;
     } else {
@@ -5357,7 +5474,7 @@ function renderHome() {
           ${iconSvg(w.icon)}
           <span>${esc(w.name)}</span>
         </div>
-        <div class="wallet-pill-bal num ${bal < 0 ? 'negative' : ''}">${money(bal)}</div>
+        <div class="wallet-pill-bal num">${bal < 0 ? `−${money(Math.abs(bal))}` : money(bal)}</div>
       </div>
     `;
   }).join("");
@@ -5375,7 +5492,7 @@ function renderHome() {
   const sRate = pTotals.income > 0 ? ((pNet / pTotals.income) * 100) : 0;
   const sEl = document.getElementById("kpiSavingsRate");
   sEl.textContent = `${sRate.toFixed(1)}%`;
-  sEl.className = "kpi-tile-val num " + (sRate > 0 ? "positive" : sRate < 0 ? "negative" : "");
+  sEl.className = "kpi-tile-val num " + (sRate > 0 ? "positive" : "");
   document.getElementById("kpiSavingsSub").textContent = homeShowAllTime ? "All-time ratio" : `${label} ratio`;
 
   // Current Calendar Month Budget Health & Smart Warning Banner
