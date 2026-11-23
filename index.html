@@ -593,6 +593,72 @@ main {
   background: var(--md-surface-container-low);
   border: 1px solid var(--md-outline-variant);
   margin-bottom: 10px;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.12s ease, opacity 0.16s ease;
+}
+
+.notif-item:active {
+  transform: scale(0.992);
+}
+
+.notif-item.is-unread {
+  background: var(--md-surface-container-lowest);
+  border-color: color-mix(in srgb, var(--md-primary) 34%, var(--md-outline-variant));
+}
+
+.notif-item.is-read {
+  background: var(--md-surface-container-low);
+  opacity: 0.84;
+}
+
+.notif-unread-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--md-primary);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.notif-seen-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--md-income);
+  flex-shrink: 0;
+}
+
+.notif-seen-tag svg {
+  width: 12px;
+  height: 12px;
+}
+
+.notif-new-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--md-primary);
+  flex-shrink: 0;
+}
+
+.notif-detail-card {
+  background: var(--md-surface-container-low);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 16px;
+  padding: 15px;
+  margin-bottom: 14px;
+}
+
+.notif-detail-body {
+  font-size: 13.5px;
+  line-height: 1.58;
+  color: var(--md-on-surface);
+  white-space: pre-line;
+  word-break: break-word;
 }
 
 .notif-icon {
@@ -3728,6 +3794,38 @@ body.dark .snackbar-action {
   </div>
 </div>
 
+<!-- ========================================================================
+     BOTTOM SHEET 11: NOTIFICATION DETAIL READER
+     ======================================================================== -->
+<div class="sheet-scrim" id="notifDetailSheetScrim" onclick="onScrimClick(event, 'notifDetailSheetScrim')">
+  <div class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="notifDetailTitle">
+    <div class="sheet-drag-zone" data-sheet="notifDetailSheetScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
+        <div class="notif-icon info" id="notifDetailIcon"></div>
+        <div style="min-width:0;flex:1">
+          <div class="notif-meta-row" style="margin-bottom:2px">
+            <span class="notif-source-text" id="notifDetailSource">Asbily</span>
+            <span class="notif-seen-tag" id="notifDetailSeenTag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>
+              Seen
+            </span>
+          </div>
+          <h2 class="sheet-title" id="notifDetailTitle" style="font-size:17px;line-height:1.28">Notification</h2>
+          <div class="sub-note num" id="notifDetailTime" style="margin-top:2px"></div>
+        </div>
+      </div>
+      <button type="button" class="md-icon-btn compact" onclick="closeSheet('notifDetailSheetScrim')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="notif-detail-card">
+      <div class="notif-detail-body" id="notifDetailDesc"></div>
+    </div>
+    <div id="notifDetailActions" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+  </div>
+</div>
+
 <div class="md-snackbar" id="mdSnackbar" role="status" aria-live="polite">
   <span id="mdSnackbarText"></span>
   <button type="button" class="snackbar-action" id="mdSnackbarAction" style="display:none"></button>
@@ -3748,6 +3846,7 @@ const KEYS = {
   SET: "asbily_m3_settings_v4",
   FB_NOTIFS: "asbily_m3_fb_notifs_v1",
   FB_DISMISSED: "asbily_m3_fb_dismissed_v1",
+  READ_NOTIFS: "asbily_m3_read_notifs_v1",
   MOBILE_ALERTS_SENT: "asbily_m3_mobile_alerts_v1"
 };
 
@@ -3816,6 +3915,10 @@ let settings = readSettings();
 let firebaseNotifsBySource = { rtdb: [], firestore: [] };
 let firebaseNotifications = readJSON(KEYS.FB_NOTIFS, []);
 let dismissedFirebaseNotifs = readJSON(KEYS.FB_DISMISSED, []);
+let readNotifIds = (() => {
+  const raw = readJSON(KEYS.READ_NOTIFS, []);
+  return Array.isArray(raw) ? raw.filter(x => typeof x === "string" && x) : [];
+})();
 
 let currentView = "home";
 let viewStack = ["home"]; // Tracks exact sequence of visited views
@@ -4275,7 +4378,7 @@ function normalizeFirebaseNotif(id, raw, source) {
   if (!raw || typeof raw !== "object") return null;
   if (raw.active === false || raw.enabled === false) return null;
   const title = String(raw.title || raw.heading || "Asbily Announcement").trim().slice(0, 100);
-  const desc = String(raw.body || raw.message || raw.desc || raw.text || "").trim().slice(0, 320);
+  const desc = String(raw.body || raw.message || raw.desc || raw.text || "").trim().slice(0, 600);
   if (!title && !desc) return null;
 
   const rawType = String(raw.type || raw.level || raw.priority || "info").toLowerCase();
@@ -4366,6 +4469,57 @@ window.setFirebaseNotifications = function (source, rawItems) {
   });
 };
 
+function persistReadNotifs() {
+  if (readNotifIds.length > 250) {
+    readNotifIds = readNotifIds.slice(-250);
+  }
+  try {
+    localStorage.setItem(KEYS.READ_NOTIFS, JSON.stringify(readNotifIds));
+  } catch {}
+}
+
+function isNotifRead(id) {
+  return Boolean(id && Array.isArray(readNotifIds) && readNotifIds.includes(id));
+}
+
+function markNotifAsRead(id, opts = {}) {
+  let changed = false;
+  if (id && typeof id === "string") {
+    if (!Array.isArray(readNotifIds)) readNotifIds = [];
+    if (!readNotifIds.includes(id)) {
+      readNotifIds.push(id);
+      persistReadNotifs();
+      changed = true;
+    }
+  }
+  if (changed) {
+    updateNotificationBadge();
+  }
+  if (!opts.silent && document.getElementById("notifSheetScrim")?.classList.contains("open")) {
+    renderNotificationsList();
+  }
+  return changed;
+}
+
+function markAllNotifsAsRead() {
+  haptic(8);
+  const notifs = getActiveNotifications();
+  if (!Array.isArray(readNotifIds)) readNotifIds = [];
+  let added = 0;
+  notifs.forEach(n => {
+    if (n && n.id && !readNotifIds.includes(n.id)) {
+      readNotifIds.push(n.id);
+      added += 1;
+    }
+  });
+  if (added > 0) {
+    persistReadNotifs();
+  }
+  updateNotificationBadge();
+  renderNotificationsList();
+  showSnackbar(added > 0 ? "All notifications marked as seen" : "All notifications already seen");
+}
+
 function dismissFirebaseNotif(id) {
   if (!id) return;
   haptic(8);
@@ -4378,6 +4532,7 @@ function dismissFirebaseNotif(id) {
       localStorage.setItem(KEYS.FB_DISMISSED, JSON.stringify(dismissedFirebaseNotifs));
     } catch {}
   }
+  markNotifAsRead(id, { silent: true });
   updateNotificationBadge();
   renderNotificationsList();
 }
@@ -4386,10 +4541,15 @@ function handleNotifAction(idx) {
   const notifs = getActiveNotifications();
   const item = notifs[idx];
   if (!item) return;
+  if (item.id) {
+    markNotifAsRead(item.id, { silent: true });
+  }
   if (item.actionType === "postRecurring") {
+    closeSheet("notifDetailSheetScrim");
     closeSheet("notifSheetScrim");
     postAllDueRecurring();
   } else if (item.safeView && VIEW_TITLES[item.safeView]) {
+    closeSheet("notifDetailSheetScrim");
     closeSheet("notifSheetScrim");
     switchView(item.safeView);
   }
@@ -4462,6 +4622,7 @@ function getActiveNotifications() {
     if (fin.monthNet < 0) {
       const lossAmt = Math.abs(fin.monthNet);
       list.push({
+        id: `local:loss:${fin.curMonth}:${Math.round(lossAmt)}`,
         group: "loss",
         sourceLabel: `Ledger · ${fin.curLabel} Loss`,
         type: "danger",
@@ -4472,6 +4633,7 @@ function getActiveNotifications() {
       });
     } else if (fin.monthIn > 0 && fin.monthMarginPct <= 20) {
       list.push({
+        id: `local:margin:${fin.curMonth}:${Math.round(fin.monthNet)}`,
         group: "loss",
         sourceLabel: `Ledger · ${fin.curLabel} Margin`,
         type: "warn",
@@ -4485,6 +4647,7 @@ function getActiveNotifications() {
     if (fin.allNet < 0) {
       const totalLoss = Math.abs(fin.allNet);
       list.push({
+        id: `local:allloss:${Math.round(totalLoss)}`,
         group: "loss",
         sourceLabel: "Ledger · Overall Net Balance",
         type: "danger",
@@ -4499,6 +4662,7 @@ function getActiveNotifications() {
       if (wa.status === "loss") {
         const deficit = Math.abs(wa.bal);
         list.push({
+          id: `local:wloss:${wa.id}:${Math.round(deficit)}`,
           group: "loss",
           sourceLabel: `Wallet · ${wa.name}`,
           type: "danger",
@@ -4509,6 +4673,7 @@ function getActiveNotifications() {
         });
       } else {
         list.push({
+          id: `local:wlow:${wa.id}:${Math.round(wa.bal)}`,
           group: "loss",
           sourceLabel: `Wallet · ${wa.name}`,
           type: "warn",
@@ -4524,7 +4689,9 @@ function getActiveNotifications() {
   // 3. Check Due Recurring Schedules
   const dueList = recurringItems.filter(r => r.nextDate <= today);
   if (dueList.length > 0) {
+    const dueIdsKey = dueList.map(d => d.id).sort().join(",");
     list.push({
+      id: `local:rec:${today}:${dueIdsKey}`,
       group: "budget",
       sourceLabel: "Recurring Schedules",
       type: "info",
@@ -4539,17 +4706,20 @@ function getActiveNotifications() {
   if (settings.budget > 0) {
     const pct = (fin.monthOut / settings.budget) * 100;
     if (fin.monthOut > settings.budget) {
+      const overAmt = fin.monthOut - settings.budget;
       list.push({
+        id: `local:bover:${fin.curMonth}:${Math.round(overAmt)}`,
         group: "budget",
         sourceLabel: "Monthly Budget Cap",
         type: "danger",
         title: "Monthly Budget Exceeded",
-        desc: `You have spent ${money(fin.monthOut - settings.budget)} over your monthly limit.`,
+        desc: `You have spent ${money(overAmt)} over your monthly limit.`,
         actionLabel: "View Budget",
         safeView: "budget"
       });
     } else if (pct >= 85) {
       list.push({
+        id: `local:bwarn:${fin.curMonth}:${Math.floor(pct / 5)}`,
         group: "budget",
         sourceLabel: "Monthly Budget Cap",
         type: "warn",
@@ -4569,6 +4739,7 @@ function getActiveNotifications() {
         .reduce((s, t) => s + Number(t.amount), 0);
       if (catSpent > cap) {
         list.push({
+          id: `local:catcap:${fin.curMonth}:${catName}:${Math.round(catSpent)}`,
           group: "budget",
           sourceLabel: `Category Cap · ${catName}`,
           type: "warn",
@@ -4913,15 +5084,28 @@ function renderNotifPermissionBanner() {
   }
 }
 
+function isCountedNotif(n) {
+  return Boolean(n && (n.isRemote || n.type === "danger" || n.type === "warn" || n.actionType === "postRecurring"));
+}
+
+function getUnreadNotifCount(notifs = null) {
+  const list = Array.isArray(notifs) ? notifs : getActiveNotifications();
+  return list.filter(n => isCountedNotif(n) && !isNotifRead(n.id)).length;
+}
+
 function updateNotificationBadge() {
-  const notifs = getActiveNotifications();
-  const urgentCount = notifs.filter(n => n.isRemote || n.type === "danger" || n.type === "warn" || n.actionType === "postRecurring").length;
+  const unreadCount = getUnreadNotifCount();
   const badge = document.getElementById("topNotifBadge");
+  const btn = document.getElementById("topNotifBtn");
+  if (btn) {
+    btn.setAttribute("aria-label", unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications");
+  }
   if (!badge) return;
-  if (urgentCount > 0) {
-    badge.textContent = urgentCount;
+  if (unreadCount > 0) {
+    badge.textContent = unreadCount;
     badge.classList.add("active");
   } else {
+    badge.textContent = "0";
     badge.classList.remove("active");
   }
 }
@@ -4958,38 +5142,99 @@ function restoreDismissedFirebaseNotifs() {
   showSnackbar("Dismissed Asbily messages restored");
 }
 
-function renderNotifItemCard(n) {
-  let icon = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>';
-  if (n.type === "danger" || n.type === "warn") {
-    icon = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
-  } else if (n.isRemote) {
-    icon = '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>';
+function getNotifIconPaths(n) {
+  if (n && (n.type === "danger" || n.type === "warn")) {
+    return '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
   }
+  if (n && n.isRemote) {
+    return '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>';
+  }
+  return '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>';
+}
+
+function openNotificationDetail(idx) {
+  const notifs = getActiveNotifications();
+  const item = notifs[idx];
+  if (!item) return;
+  haptic(8);
+
+  if (item.id) {
+    markNotifAsRead(item.id);
+  }
+
+  const iconWrap = document.getElementById("notifDetailIcon");
+  if (iconWrap) {
+    iconWrap.className = `notif-icon ${item.type || "info"}`;
+    iconWrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${getNotifIconPaths(item)}</svg>`;
+  }
+
+  const sourceEl = document.getElementById("notifDetailSource");
+  if (sourceEl) sourceEl.textContent = item.sourceLabel || (item.isRemote ? "Asbily" : "Ledger Alert");
+
+  const titleEl = document.getElementById("notifDetailTitle");
+  if (titleEl) titleEl.textContent = item.title || "Notification";
+
+  const timeEl = document.getElementById("notifDetailTime");
+  if (timeEl) {
+    const timeStr = item.createdAt ? formatNotifTime(item.createdAt) : "";
+    timeEl.textContent = timeStr || "Active alert";
+  }
+
+  const descEl = document.getElementById("notifDetailDesc");
+  if (descEl) descEl.textContent = item.desc || "No additional message details.";
+
+  const actionsEl = document.getElementById("notifDetailActions");
+  if (actionsEl) {
+    let btns = "";
+    if (item.actionLabel && item.safeHref) {
+      btns += `<a class="m3-btn-filled ripple-host" style="flex:1;min-width:130px;text-decoration:none" href="${esc(item.safeHref)}">${esc(item.actionLabel)} →</a>`;
+    } else if (item.actionLabel) {
+      btns += `<button type="button" class="m3-btn-filled ripple-host" style="flex:1;min-width:130px" onclick="handleNotifAction(${idx})">${esc(item.actionLabel)} →</button>`;
+    }
+    if (item.isRemote) {
+      btns += `<button type="button" class="m3-btn-outlined ripple-host" style="flex:1;min-width:110px" onclick="dismissFirebaseNotif(${jsAttr(item.id)});closeSheet('notifDetailSheetScrim')">Dismiss</button>`;
+    }
+    btns += `<button type="button" class="m3-btn-outlined ripple-host" style="${btns ? "min-width:96px" : "width:100%"}" onclick="closeSheet('notifDetailSheetScrim')">Close</button>`;
+    actionsEl.innerHTML = btns;
+  }
+
+  openSheet("notifDetailSheetScrim");
+}
+
+function renderNotifItemCard(n) {
+  const icon = getNotifIconPaths(n);
+  const seen = isNotifRead(n.id);
 
   let actionHtml = "";
   if (n.actionLabel && n.safeHref) {
-    actionHtml += `<a class="text-action-btn" style="padding:0;min-height:30px;margin-top:4px;text-decoration:none" href="${esc(n.safeHref)}">${esc(n.actionLabel)} →</a>`;
+    actionHtml += `<a class="text-action-btn" style="padding:0;min-height:30px;margin-top:4px;text-decoration:none" href="${esc(n.safeHref)}" onclick="event.stopPropagation();markNotifAsRead(${jsAttr(n.id)})">${esc(n.actionLabel)} →</a>`;
   } else if (n.actionLabel) {
-    actionHtml += `<button type="button" class="text-action-btn" style="padding:0;min-height:30px;margin-top:4px" onclick="handleNotifAction(${n._idx})">${esc(n.actionLabel)} →</button>`;
+    actionHtml += `<button type="button" class="text-action-btn" style="padding:0;min-height:30px;margin-top:4px" onclick="event.stopPropagation();handleNotifAction(${n._idx})">${esc(n.actionLabel)} →</button>`;
   }
   if (n.isRemote) {
-    actionHtml += `<button type="button" class="text-action-btn" style="padding:0;min-height:30px;margin-top:4px;color:var(--md-on-surface-variant)" onclick="dismissFirebaseNotif(${jsAttr(n.id)})">Dismiss</button>`;
+    actionHtml += `<button type="button" class="text-action-btn" style="padding:0;min-height:30px;margin-top:4px;color:var(--md-on-surface-variant)" onclick="event.stopPropagation();dismissFirebaseNotif(${jsAttr(n.id)})">Dismiss</button>`;
   }
 
   const timeStr = n.createdAt ? formatNotifTime(n.createdAt) : "";
   const sourceLabel = n.sourceLabel || (n.isRemote ? "Asbily" : "Ledger Alert");
+  const statusHtml = seen
+    ? `<span class="notif-seen-tag" title="Seen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>Seen</span>`
+    : `<span class="notif-new-tag"><span class="notif-unread-dot" aria-hidden="true"></span>Unread</span>`;
 
   return `
-    <div class="notif-item">
+    <div class="notif-item ${seen ? "is-read" : "is-unread"}" role="button" tabindex="0" onclick="openNotificationDetail(${n._idx})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openNotificationDetail(${n._idx});}">
       <div class="notif-icon ${n.type}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>
       </div>
       <div style="flex:1;min-width:0">
         <div class="notif-meta-row">
           <span class="notif-source-text">${esc(sourceLabel)}</span>
-          ${timeStr ? `<span class="num" style="flex-shrink:0">${esc(timeStr)}</span>` : ""}
+          <span style="display:inline-flex;align-items:center;gap:8px;flex-shrink:0">
+            ${timeStr ? `<span class="num">${esc(timeStr)}</span>` : ""}
+            ${statusHtml}
+          </span>
         </div>
-        <div style="font-size:13.5px;font-weight:700">${esc(n.title)}</div>
+        <div style="font-size:13.5px;font-weight:${seen ? "600" : "700"}">${esc(n.title)}</div>
         ${n.desc ? `<div class="sub-note" style="margin-top:2px">${esc(n.desc)}</div>` : ""}
         ${actionHtml ? `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">${actionHtml}</div>` : ""}
       </div>
@@ -5003,6 +5248,7 @@ function renderNotificationsList() {
   const asbilyItems = indexed.filter(n => n.group === "asbily");
   const lossItems = indexed.filter(n => n.group === "loss");
   const budgetItems = indexed.filter(n => n.group === "budget");
+  const unreadCount = getUnreadNotifCount(indexed);
 
   const totalAsbilyAll = Array.isArray(firebaseNotifications) ? firebaseNotifications.length : asbilyItems.length;
   const dismissedIds = new Set(Array.isArray(dismissedFirebaseNotifs) ? dismissedFirebaseNotifs : []);
@@ -5010,9 +5256,10 @@ function renderNotificationsList() {
 
   const subtitleEl = document.getElementById("notifSheetSubtitle");
   if (subtitleEl) {
+    const unreadText = unreadCount > 0 ? `${unreadCount} unread` : "All seen";
     const msgWord = totalAsbilyAll === 1 ? "message" : "messages";
     const activeNote = dismissedAsbilyCount > 0 ? ` (${asbilyItems.length} active)` : "";
-    subtitleEl.textContent = `Asbily sent ${totalAsbilyAll} ${msgWord}${activeNote} · ${indexed.length} total alerts`;
+    subtitleEl.textContent = `${unreadText} · ${indexed.length} alerts · Asbily ${totalAsbilyAll} ${msgWord}${activeNote}`;
   }
 
   const summaryEl = document.getElementById("notifSourceSummary");
@@ -5051,12 +5298,19 @@ function renderNotificationsList() {
   const container = document.getElementById("notifListContainer");
   if (!container) return;
 
-  const restoreBar = dismissedAsbilyCount > 0
+  const markAllBar = unreadCount > 0
+    ? `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:12px;background:var(--md-surface-container-low);border:1px solid var(--md-outline-variant);margin-bottom:10px">
+         <span class="sub-note num">${unreadCount} unread notification${unreadCount === 1 ? "" : "s"} · Tap any to view</span>
+         <button type="button" class="text-action-btn" style="padding:0;min-height:32px" onclick="markAllNotifsAsRead()">Mark all seen</button>
+       </div>`
+    : "";
+
+  const restoreBar = markAllBar + (dismissedAsbilyCount > 0
     ? `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:12px;background:var(--md-surface-container-low);border:1px solid var(--md-outline-variant);margin-bottom:10px">
          <span class="sub-note">${dismissedAsbilyCount} hidden Asbily message${dismissedAsbilyCount === 1 ? "" : "s"}</span>
          <button type="button" class="text-action-btn" style="padding:0;min-height:32px" onclick="restoreDismissedFirebaseNotifs()">Show Again</button>
        </div>`
-    : "";
+    : "");
 
   if (notifFilterTab === "asbily") {
     if (!asbilyItems.length) {
@@ -5144,6 +5398,7 @@ function openNotificationsSheet(initialTab = null) {
   if (initialTab && ["all", "asbily", "loss", "budget"].includes(initialTab)) {
     notifFilterTab = initialTab;
   }
+  updateNotificationBadge();
   renderNotificationsList();
   openSheet("notifSheetScrim");
 }
@@ -8168,7 +8423,9 @@ function confirmWipeAll() {
         showSnackbar("Storage unavailable.");
         return;
       }
+      readNotifIds = [];
       try { localStorage.removeItem(KEYS.MOBILE_ALERTS_SENT); } catch {}
+      try { localStorage.removeItem(KEYS.READ_NOTIFS); } catch {}
       renderSettingsUI();
       renderAll();
       showSnackbar("All local data wiped");
