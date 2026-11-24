@@ -2551,6 +2551,120 @@ body.dark .snackbar-action {
   line-height: 1.55;
 }
 
+.update-hero-box {
+  background: var(--md-surface-container-low);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.update-ver-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.update-status-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.update-icon-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--md-surface-container-high);
+  color: var(--md-on-surface);
+  border: 1px solid var(--md-outline-variant);
+}
+
+.update-icon-badge.ok {
+  background: var(--md-income-soft);
+  color: var(--md-income);
+  border-color: transparent;
+}
+
+.update-icon-badge.warn {
+  background: var(--md-expense-soft);
+  color: var(--md-expense);
+  border-color: transparent;
+}
+
+.update-icon-badge svg {
+  width: 20px;
+  height: 20px;
+}
+
+.update-meta-list {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--md-outline-variant);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.update-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.update-meta-k {
+  color: var(--md-on-surface-variant);
+  font-weight: 500;
+}
+
+.update-meta-v {
+  color: var(--md-on-surface);
+  font-weight: 700;
+  text-align: right;
+}
+
+.update-changelog {
+  font-size: 12.5px;
+  color: var(--md-on-surface-variant);
+  line-height: 1.6;
+  white-space: pre-line;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--md-surface-container);
+  border: 1px solid var(--md-outline-variant);
+  margin-bottom: 14px;
+}
+
+.update-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--md-expense);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+@keyframes spinAnim {
+  to { transform: rotate(360deg); }
+}
+
+.spin-icon {
+  animation: spinAnim 0.9s linear infinite;
+}
+
 /* ==========================================================================
    PRINT / PDF SUMMARY STYLES
    ========================================================================== */
@@ -3347,6 +3461,19 @@ body.dark .snackbar-action {
         <h2 class="section-title">Application</h2>
       </div>
       <div class="m3-card" style="padding:10px 14px">
+        <div class="tx-card ripple-host" id="moreUpdateRow" style="border:none;box-shadow:none;padding:10px 4px" onclick="openAppUpdateSheet(true)">
+          <div class="tx-leading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </div>
+          <div class="tx-center">
+            <div class="tx-name">Check for Updates <span class="update-dot" id="moreUpdateDot" style="display:none" aria-label="New update available"></span></div>
+            <div class="tx-sub" id="moreUpdateSub">Version 1.0.0 · Tap to check for updates</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+
+        <div style="height:1px;background:var(--md-outline-variant)"></div>
+
         <div class="tx-card ripple-host" style="border:none;box-shadow:none;padding:10px 4px" onclick="switchView('about')">
           <div class="tx-leading">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -3513,6 +3640,10 @@ body.dark .snackbar-action {
         <div class="about-kv-row">
           <span class="about-kv-label">Version</span>
           <span class="about-kv-val">1.0.0</span>
+        </div>
+        <div class="about-kv-row">
+          <span class="about-kv-label">Update Status</span>
+          <button type="button" class="text-action-btn" id="aboutCheckUpdateBtn" style="min-height:30px;padding:0 4px" onclick="openAppUpdateSheet(true)">Check for Updates</button>
         </div>
       </div>
 
@@ -4247,6 +4378,25 @@ body.dark .snackbar-action {
   </div>
 </div>
 
+<!-- ========================================================================
+     BOTTOM SHEET 16: APP UPDATE CHECKER
+     ======================================================================== -->
+<div class="sheet-scrim" id="updateSheetScrim" onclick="onScrimClick(event, 'updateSheetScrim')">
+  <div class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="updateSheetTitle">
+    <div class="sheet-drag-zone" data-sheet="updateSheetScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title" id="updateSheetTitle">App Updates</h2>
+        <div class="sub-note num">Asbily Expense Tracker · v1.0.0</div>
+      </div>
+      <button type="button" class="md-icon-btn compact" onclick="closeSheet('updateSheetScrim')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="updateSheetBody"></div>
+  </div>
+</div>
+
 <div class="md-snackbar" id="mdSnackbar" role="status" aria-live="polite">
   <span id="mdSnackbarText"></span>
   <button type="button" class="snackbar-action" id="mdSnackbarAction" style="display:none"></button>
@@ -4270,8 +4420,16 @@ const KEYS = {
   FB_NOTIFS: "asbily_m3_fb_notifs_v1",
   FB_DISMISSED: "asbily_m3_fb_dismissed_v1",
   READ_NOTIFS: "asbily_m3_read_notifs_v1",
-  MOBILE_ALERTS_SENT: "asbily_m3_mobile_alerts_v1"
+  MOBILE_ALERTS_SENT: "asbily_m3_mobile_alerts_v1",
+  UPDATE_CACHE: "asbily_m3_update_cache_v2"
 };
+
+const APP_VERSION = "1.0.0";
+const APP_PACKAGE = "com.asbily.expensetracker";
+const ASBILY_APP_PAGE = "https://platforms.asbily.com/expense-tracker/";
+const ASBILY_UPDATES_JSON_URL = "https://platforms.asbily.com/expense-tracker/updates.json";
+const RTDB_UPDATE_URL = "https://asbily-default-rtdb.firebaseio.com/app_update.json";
+const FIRESTORE_UPDATE_URL = "https://firestore.googleapis.com/v1/projects/asbily/databases/(default)/documents/app_update";
 
 const ICONS = {
   wallet: '<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>',
@@ -4393,6 +4551,43 @@ let idleTimer = null;
 let lastBackPressTime = 0;
 let lastSwipeOrHoldAt = 0;
 let notifFilterTab = "all";
+let remoteFirebaseUpdate = null;
+let appUpdateState = (() => {
+  try { localStorage.removeItem("asbily_m3_update_cache_v1"); } catch {}
+  try {
+    const cached = JSON.parse(localStorage.getItem(KEYS.UPDATE_CACHE) || "null");
+    if (cached && typeof cached === "object") {
+      const rawSource = typeof cached.source === "string" ? cached.source : "";
+      const rawUrl = typeof cached.downloadUrl === "string" ? cached.downloadUrl : "";
+      if (/github/i.test(rawSource) || /github/i.test(rawUrl)) {
+        try { localStorage.removeItem(KEYS.UPDATE_CACHE); } catch {}
+      } else {
+        return {
+          checking: false,
+          status: typeof cached.status === "string" ? cached.status : "idle",
+          latestVersion: typeof cached.latestVersion === "string" ? cached.latestVersion : "",
+          notes: typeof cached.notes === "string" ? cached.notes : "",
+          downloadUrl: rawUrl,
+          publishedAt: typeof cached.publishedAt === "string" ? cached.publishedAt : "",
+          source: rawSource,
+          checkedAt: Number(cached.checkedAt) || 0,
+          errorMsg: ""
+        };
+      }
+    }
+  } catch {}
+  return {
+    checking: false,
+    status: "idle",
+    latestVersion: "",
+    notes: "",
+    downloadUrl: "",
+    publishedAt: "",
+    source: "",
+    checkedAt: 0,
+    errorMsg: ""
+  };
+})();
 
 /* ==========================================================================
    ANDROID HAPTICS ENGINE
@@ -5047,6 +5242,10 @@ function handleNotifAction(idx) {
     closeSheet("notifDetailSheetScrim");
     closeSheet("notifSheetScrim");
     postAllDueRecurring();
+  } else if (item.actionType === "openUpdate") {
+    closeSheet("notifDetailSheetScrim");
+    closeSheet("notifSheetScrim");
+    openAppUpdateSheet(false);
   } else if (item.safeView && VIEW_TITLES[item.safeView]) {
     closeSheet("notifDetailSheetScrim");
     closeSheet("notifSheetScrim");
@@ -5272,6 +5471,22 @@ function getActiveNotifications() {
       });
     }
   });
+
+  // 7. New App Update Available Alert (only when verified remote version > APP_VERSION)
+  if (appUpdateState && appUpdateState.status === "available" && appUpdateState.latestVersion && compareSemver(appUpdateState.latestVersion, APP_VERSION) > 0) {
+    list.push({
+      id: `local:update:${appUpdateState.latestVersion}`,
+      group: "asbily",
+      sourceLabel: "App Update",
+      type: "info",
+      title: `New Update Available: v${appUpdateState.latestVersion}`,
+      desc: appUpdateState.notes
+        ? `Current: v${APP_VERSION} · ${appUpdateState.notes}`
+        : `A new version (v${appUpdateState.latestVersion}) of Asbily Expense Tracker is available.`,
+      actionLabel: "View Update",
+      actionType: "openUpdate"
+    });
+  }
 
   return list;
 }
@@ -5606,7 +5821,7 @@ function renderNotifPermissionBanner() {
 }
 
 function isCountedNotif(n) {
-  return Boolean(n && (n.isRemote || n.type === "danger" || n.type === "warn" || n.actionType === "postRecurring"));
+  return Boolean(n && (n.isRemote || n.type === "danger" || n.type === "warn" || n.actionType === "postRecurring" || n.actionType === "openUpdate"));
 }
 
 function getUnreadNotifCount(notifs = null) {
@@ -10005,6 +10220,7 @@ function renderAll(opts = {}) {
   updateMoreSubLabels();
   updateNotificationBadge();
   updateBackupStatsSummary();
+  if (typeof syncUpdateStatusLabels === "function") syncUpdateStatusLabels();
 }
 
 /* ==========================================================================
@@ -10374,14 +10590,515 @@ function openAboutDoc(key) {
 }
 
 /* ==========================================================================
+   APP UPDATE CHECKER (ASBILY CLOUD / FIREBASE & OPTIONAL NATIVE BRIDGE)
+   ========================================================================== */
+function normalizeSemverStr(raw) {
+  const s = String(raw || "").trim().replace(/^v/i, "");
+  const m = s.match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?/);
+  if (!m) return "";
+  return `${Number(m[1])}.${Number(m[2] || 0)}.${Number(m[3] || 0)}`;
+}
+
+function compareSemver(a, b) {
+  const na = normalizeSemverStr(a);
+  const nb = normalizeSemverStr(b);
+  if (!na || !nb) return 0;
+  const pa = na.split(".").map(Number);
+  const pb = nb.split(".").map(Number);
+  for (let i = 0; i < 3; i++) {
+    if (pa[i] > pb[i]) return 1;
+    if (pa[i] < pb[i]) return -1;
+  }
+  return 0;
+}
+
+function saveUpdateStateCache() {
+  try {
+    localStorage.setItem(KEYS.UPDATE_CACHE, JSON.stringify({
+      status: appUpdateState.status,
+      latestVersion: appUpdateState.latestVersion,
+      notes: appUpdateState.notes,
+      downloadUrl: appUpdateState.downloadUrl,
+      publishedAt: appUpdateState.publishedAt,
+      source: appUpdateState.source,
+      checkedAt: appUpdateState.checkedAt
+    }));
+  } catch {}
+}
+
+function safeHttpsUrl(rawUrl) {
+  const s = String(rawUrl || "").trim();
+  return /^https:\/\//i.test(s) ? s : "";
+}
+
+function normalizeUpdateCandidate(raw, defaultSource) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  if (raw.packageName && String(raw.packageName).trim() !== APP_PACKAGE) return null;
+  const ver = normalizeSemverStr(raw.version || raw.latestVersion || raw.versionName || raw.tag_name || raw.name || "");
+  if (!ver) return null;
+  const candidateUrl = raw.downloadUrl || raw.download_url || raw.apkUrl || raw.apk_url || raw.url || raw.link || "";
+  const safeUrl = safeHttpsUrl(candidateUrl) || ASBILY_APP_PAGE;
+  const rawNotes = raw.notes ?? raw.releaseNotes ?? raw.release_notes ?? raw.changelog ?? raw.whatsNew ?? raw.description ?? "";
+  const notes = (Array.isArray(rawNotes) ? rawNotes.map(x => String(x || "").trim()).filter(Boolean).join("\n") : String(rawNotes || "")).trim().slice(0, 1200);
+  const pubRaw = String(raw.publishedAt || raw.published_at || raw.updatedAt || raw.updated_at || raw.releaseDate || raw.date || "").slice(0, 10);
+  return {
+    version: ver,
+    notes,
+    downloadUrl: safeUrl,
+    publishedAt: pubRaw,
+    source: defaultSource || "Asbily Server"
+  };
+}
+
+function extractUpdateCandidatesFromPayload(payload, defaultSource) {
+  const out = [];
+  if (!payload || typeof payload !== "object") return out;
+  if (Array.isArray(payload)) {
+    payload.forEach(entry => {
+      const c = normalizeUpdateCandidate(entry, defaultSource);
+      if (c) out.push(c);
+    });
+    return out;
+  }
+  const direct = normalizeUpdateCandidate(payload, defaultSource);
+  if (direct) out.push(direct);
+  const nestedLists = [payload.updates, payload.releases, payload.versions];
+  nestedLists.forEach(list => {
+    if (Array.isArray(list)) {
+      list.forEach(entry => {
+        const c = normalizeUpdateCandidate(entry, defaultSource);
+        if (c) out.push(c);
+      });
+    }
+  });
+  Object.values(payload).forEach(val => {
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      const c = normalizeUpdateCandidate(val, defaultSource);
+      if (c) out.push(c);
+    }
+  });
+  return out;
+}
+
+function parseFirestoreDocFields(fields) {
+  if (!fields || typeof fields !== "object") return null;
+  const out = {};
+  for (const [k, v] of Object.entries(fields)) {
+    if (!v || typeof v !== "object") continue;
+    if ("stringValue" in v) out[k] = v.stringValue;
+    else if ("integerValue" in v) out[k] = String(v.integerValue);
+    else if ("doubleValue" in v) out[k] = String(v.doubleValue);
+    else if ("timestampValue" in v) out[k] = v.timestampValue;
+  }
+  return out;
+}
+
+window.setRemoteAppUpdate = function (source, raw) {
+  const srcLabel = "Asbily Cloud";
+  let item = normalizeUpdateCandidate(raw, srcLabel);
+  if (!item && raw && typeof raw === "object") {
+    Object.values(raw).forEach(entry => {
+      const c = normalizeUpdateCandidate(entry, srcLabel);
+      if (c && (!item || compareSemver(c.version, item.version) > 0)) {
+        item = c;
+      }
+    });
+  }
+  if (!item) return;
+  if (!remoteFirebaseUpdate || compareSemver(item.version, remoteFirebaseUpdate.version) >= 0) {
+    remoteFirebaseUpdate = item;
+  }
+  if (compareSemver(item.version, APP_VERSION) > 0) {
+    appUpdateState = {
+      ...appUpdateState,
+      checking: false,
+      status: "available",
+      latestVersion: item.version,
+      notes: item.notes,
+      downloadUrl: item.downloadUrl,
+      publishedAt: item.publishedAt,
+      source: item.source,
+      checkedAt: Date.now(),
+      errorMsg: ""
+    };
+  } else if (appUpdateState.status === "idle" || appUpdateState.status === "unavailable") {
+    appUpdateState = {
+      ...appUpdateState,
+      checking: false,
+      status: "latest",
+      latestVersion: item.version,
+      notes: item.notes,
+      downloadUrl: item.downloadUrl,
+      publishedAt: item.publishedAt,
+      source: item.source,
+      checkedAt: Date.now(),
+      errorMsg: ""
+    };
+  }
+  saveUpdateStateCache();
+  syncUpdateStatusLabels();
+  updateNotificationBadge();
+  if (document.getElementById("updateSheetScrim")?.classList.contains("open")) {
+    renderAppUpdateSheet();
+  }
+};
+
+async function fetchJsonWithTimeout(url, options = {}, timeoutMs = 7000) {
+  const ctrl = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: ctrl ? ctrl.signal : undefined
+    });
+    if (!res.ok) return { ok: false, status: res.status, data: null };
+    const data = await res.json();
+    return { ok: true, status: res.status, data };
+  } catch {
+    return { ok: false, status: 0, data: null };
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+function formatUpdateCheckedTime(ts) {
+  if (!ts) return "Never checked";
+  try {
+    return new Date(ts).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  } catch {
+    return "";
+  }
+}
+
+function syncUpdateStatusLabels() {
+  const hasNew = appUpdateState.status === "available" && compareSemver(appUpdateState.latestVersion, APP_VERSION) > 0;
+  const dot = document.getElementById("moreUpdateDot");
+  if (dot) dot.style.display = hasNew ? "inline-block" : "none";
+
+  const sub = document.getElementById("moreUpdateSub");
+  if (sub) {
+    if (appUpdateState.checking) {
+      sub.textContent = "Checking for updates...";
+    } else if (hasNew) {
+      sub.textContent = `New update available: v${appUpdateState.latestVersion} (Current: v${APP_VERSION})`;
+    } else if (appUpdateState.status === "latest") {
+      sub.textContent = `Up to date · Version ${APP_VERSION}`;
+    } else if (appUpdateState.status === "offline") {
+      sub.textContent = `Version ${APP_VERSION} · Offline`;
+    } else if (appUpdateState.status === "unavailable") {
+      sub.textContent = `Version ${APP_VERSION} · Check failed, tap to retry`;
+    } else {
+      sub.textContent = `Version ${APP_VERSION} · Tap to check for updates`;
+    }
+  }
+
+  const aboutBtn = document.getElementById("aboutCheckUpdateBtn");
+  if (aboutBtn) {
+    if (appUpdateState.checking) aboutBtn.textContent = "Checking...";
+    else if (hasNew) aboutBtn.textContent = `Update v${appUpdateState.latestVersion} Available`;
+    else if (appUpdateState.status === "latest") aboutBtn.textContent = "Up to date (Check Again)";
+    else aboutBtn.textContent = "Check for Updates";
+  }
+}
+
+function formatReleaseDateLabel(dateStr) {
+  const s = String(dateStr || "").trim();
+  if (!s) return "";
+  try {
+    const d = new Date(s.length === 10 ? s + "T00:00:00" : s);
+    if (!Number.isNaN(d.getTime())) {
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
+  } catch {}
+  return s;
+}
+
+function renderAppUpdateSheet() {
+  const body = document.getElementById("updateSheetBody");
+  if (!body) return;
+
+  const st = appUpdateState;
+  const hasNew = st.status === "available" && compareSemver(st.latestVersion, APP_VERSION) > 0;
+
+  let badgeClass = "active";
+  let badgeText = "Ready";
+  let iconClass = "";
+  let iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  let headline = `Version ${APP_VERSION} Installed`;
+  let summary = "Check for the latest release and security improvements.";
+
+  if (st.checking) {
+    badgeClass = "active";
+    badgeText = "Checking";
+    iconClass = "";
+    iconSvg = '<svg class="spin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
+    headline = "Checking for Updates...";
+    summary = "Verifying the latest release on Asbily update servers.";
+  } else if (hasNew) {
+    badgeClass = "settled";
+    badgeText = "Available";
+    iconClass = "ok";
+    iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+    headline = `Version ${st.latestVersion} Available`;
+    summary = `A new release is ready to download. Updating keeps your data tools and exports reliable.`;
+  } else if (st.status === "latest") {
+    badgeClass = "settled";
+    badgeText = "Up to Date";
+    iconClass = "ok";
+    iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+    headline = "You're Up to Date";
+    summary = `Asbily Expense Tracker v${APP_VERSION} is the latest available version.`;
+  } else if (st.status === "offline") {
+    badgeClass = "overdue";
+    badgeText = "Offline";
+    iconClass = "warn";
+    iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>';
+    headline = "No Internet Connection";
+    summary = "Connect to Wi-Fi or mobile data, then tap Try Again to check for updates.";
+  } else if (st.status === "unavailable") {
+    badgeClass = "overdue";
+    badgeText = "Unavailable";
+    iconClass = "warn";
+    iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    headline = "Update Check Unavailable";
+    summary = st.errorMsg || "Unable to connect to the update server right now. Please try again in a moment.";
+  }
+
+  const downloadHref = safeHttpsUrl(st.downloadUrl) || ASBILY_APP_PAGE;
+  const cleanSource = st.source && !/github/i.test(st.source) ? st.source : "";
+  const latestLabel = st.checking
+    ? "Checking..."
+    : (st.status === "latest" ? `v${APP_VERSION}` : (st.latestVersion ? `v${st.latestVersion}` : "Not available"));
+  const pubDateLabel = formatReleaseDateLabel(st.publishedAt);
+
+  const metaRows = [
+    { k: "Installed Version", v: `v${APP_VERSION}` },
+    { k: "Latest Release", v: latestLabel }
+  ];
+  if (pubDateLabel && (hasNew || st.status === "latest")) {
+    metaRows.push({ k: "Release Date", v: pubDateLabel });
+  }
+  if (cleanSource && (hasNew || st.status === "latest")) {
+    metaRows.push({ k: "Release Channel", v: cleanSource });
+  }
+  metaRows.push({ k: "Last Checked", v: formatUpdateCheckedTime(st.checkedAt) });
+
+  body.innerHTML = `
+    <div class="update-hero-box">
+      <div class="update-ver-row">
+        <div class="update-status-head">
+          <div class="update-icon-badge ${iconClass}">${iconSvg}</div>
+          <div style="min-width:0">
+            <div style="font-size:15px;font-weight:800;letter-spacing:-0.2px;line-height:1.25">${esc(headline)}</div>
+            <div class="sub-note" style="margin-top:3px;line-height:1.45">${esc(summary)}</div>
+          </div>
+        </div>
+        <span class="status-badge ${badgeClass}" style="flex-shrink:0">${esc(badgeText)}</span>
+      </div>
+
+      <div class="update-meta-list">
+        ${metaRows.map(r => `
+          <div class="update-meta-row">
+            <span class="update-meta-k">${esc(r.k)}</span>
+            <span class="update-meta-v num">${esc(r.v)}</span>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    ${st.notes && hasNew ? `
+      <div class="field-label" style="margin-bottom:6px">What's New in v${esc(st.latestVersion)}</div>
+      <div class="update-changelog">${esc(st.notes)}</div>
+    ` : ""}
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      ${hasNew ? `
+        <a class="m3-btn-filled ripple-host" style="flex:1;min-width:160px;text-decoration:none" href="${esc(downloadHref)}" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download v${esc(st.latestVersion)}
+        </a>
+      ` : st.status === "unavailable" ? `
+        <a class="m3-btn-outlined ripple-host" style="flex:1;min-width:140px;text-decoration:none" href="${esc(ASBILY_APP_PAGE)}" target="_blank" rel="noopener noreferrer">
+          Visit Asbily
+        </a>
+      ` : ""}
+      <button type="button" class="${hasNew ? "m3-btn-outlined" : "m3-btn-filled"} ripple-host" style="flex:1;min-width:130px" onclick="checkForAppUpdates(true)" ${st.checking ? "disabled" : ""}>
+        <svg class="${st.checking ? "spin-icon" : ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        ${st.checking ? "Checking..." : (st.status === "unavailable" || st.status === "offline" ? "Try Again" : (hasNew ? "Re-check" : "Check for Updates"))}
+      </button>
+    </div>
+  `;
+}
+
+async function checkForAppUpdates(manual = true) {
+  if (appUpdateState.checking) return;
+  if (manual) haptic(8);
+
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    const hasCachedNewer = Boolean(remoteFirebaseUpdate && compareSemver(remoteFirebaseUpdate.version, APP_VERSION) > 0);
+    appUpdateState = {
+      checking: false,
+      status: hasCachedNewer ? "available" : "offline",
+      latestVersion: hasCachedNewer ? remoteFirebaseUpdate.version : "",
+      notes: hasCachedNewer ? remoteFirebaseUpdate.notes : "",
+      downloadUrl: hasCachedNewer ? remoteFirebaseUpdate.downloadUrl : "",
+      publishedAt: hasCachedNewer ? remoteFirebaseUpdate.publishedAt : "",
+      source: hasCachedNewer ? remoteFirebaseUpdate.source : "",
+      checkedAt: Date.now(),
+      errorMsg: "Internet connection is required to check for updates."
+    };
+    syncUpdateStatusLabels();
+    renderAppUpdateSheet();
+    if (manual) showSnackbar("Offline — connect to the internet to check for updates.");
+    return;
+  }
+
+  appUpdateState = { ...appUpdateState, checking: true, errorMsg: "" };
+  syncUpdateStatusLabels();
+  if (document.getElementById("updateSheetScrim")?.classList.contains("open")) {
+    renderAppUpdateSheet();
+  }
+
+  const candidates = [];
+  if (remoteFirebaseUpdate) candidates.push(remoteFirebaseUpdate);
+
+  // Check optional native Android bridge version method only if exposed
+  try {
+    const bridge = getAndroidBridge();
+    if (bridge && typeof bridge.getLatestVersion === "function") {
+      const nativeVer = bridge.getLatestVersion();
+      const cand = normalizeUpdateCandidate({ version: nativeVer }, "App Store");
+      if (cand) candidates.push(cand);
+    }
+  } catch {}
+
+  let serverResponded = Boolean(remoteFirebaseUpdate);
+
+  // 1. Primary official endpoint: https://platforms.asbily.com/expense-tracker/updates.json
+  const webJsonRes = await fetchJsonWithTimeout(ASBILY_UPDATES_JSON_URL, { cache: "no-store" }, 6500);
+  if (webJsonRes.ok) {
+    serverResponded = true;
+    const webCands = extractUpdateCandidatesFromPayload(webJsonRes.data, "Asbily Official");
+    webCands.reverse().forEach(c => candidates.unshift(c));
+  }
+
+  // 2. Fallback to Firebase RTDB / Firestore only if primary updates.json failed and no live update arrived
+  if (!webJsonRes.ok && !remoteFirebaseUpdate) {
+    const rtdbRes = await fetchJsonWithTimeout(RTDB_UPDATE_URL, { cache: "no-store" }, 5500);
+    if (rtdbRes.ok) {
+      serverResponded = true;
+      extractUpdateCandidatesFromPayload(rtdbRes.data, "Asbily Cloud").forEach(c => candidates.push(c));
+    } else {
+      const fsRes = await fetchJsonWithTimeout(FIRESTORE_UPDATE_URL, { cache: "no-store" }, 5500);
+      if (fsRes.ok) {
+        serverResponded = true;
+        const docs = fsRes.data && Array.isArray(fsRes.data.documents) ? fsRes.data.documents : [];
+        docs.forEach(doc => {
+          const parsed = parseFirestoreDocFields(doc && doc.fields);
+          const fsCand = normalizeUpdateCandidate(parsed, "Asbily Cloud");
+          if (fsCand) candidates.push(fsCand);
+        });
+      }
+    }
+  }
+
+  let best = null;
+  for (const c of candidates) {
+    if (!best || compareSemver(c.version, best.version) > 0) {
+      best = c;
+    }
+  }
+
+  const nowTs = Date.now();
+  if (!best && !serverResponded) {
+    appUpdateState = {
+      checking: false,
+      status: "unavailable",
+      latestVersion: "",
+      notes: "",
+      downloadUrl: ASBILY_APP_PAGE,
+      publishedAt: "",
+      source: "",
+      checkedAt: nowTs,
+      errorMsg: "Unable to connect to the update server right now. Check your connection or try again later."
+    };
+    saveUpdateStateCache();
+    syncUpdateStatusLabels();
+    renderAppUpdateSheet();
+    if (manual) showSnackbar("Could not reach update server.");
+    return;
+  }
+
+  if (!best && serverResponded) {
+    appUpdateState = {
+      checking: false,
+      status: "latest",
+      latestVersion: APP_VERSION,
+      notes: "",
+      downloadUrl: ASBILY_APP_PAGE,
+      publishedAt: "",
+      source: "Asbily Official",
+      checkedAt: nowTs,
+      errorMsg: ""
+    };
+    saveUpdateStateCache();
+    syncUpdateStatusLabels();
+    updateNotificationBadge();
+    renderAppUpdateSheet();
+    if (manual) showSnackbar(`You are up to date (v${APP_VERSION})`);
+    return;
+  }
+
+  const isNewer = compareSemver(best.version, APP_VERSION) > 0;
+  appUpdateState = {
+    checking: false,
+    status: isNewer ? "available" : "latest",
+    latestVersion: best.version,
+    notes: best.notes,
+    downloadUrl: best.downloadUrl,
+    publishedAt: best.publishedAt,
+    source: best.source,
+    checkedAt: nowTs,
+    errorMsg: ""
+  };
+  saveUpdateStateCache();
+  syncUpdateStatusLabels();
+  updateNotificationBadge();
+  renderAppUpdateSheet();
+  if (manual) {
+    showSnackbar(isNewer ? `New update available: v${best.version}` : `You are up to date (v${APP_VERSION})`);
+  }
+}
+
+function openAppUpdateSheet(autoCheck = true) {
+  haptic(8);
+  renderAppUpdateSheet();
+  openSheet("updateSheetScrim");
+  if (autoCheck) {
+    checkForAppUpdates(false);
+  }
+}
+
+/* ==========================================================================
    BOOT SEQUENCE
    ========================================================================== */
 renderSettingsUI();
 syncOfflineBanner();
+syncUpdateStatusLabels();
 initPinGate();
 renderAll();
 handleLaunchShortcuts();
 notifyMobileForFinancialState({ includeRecurring: true });
+setTimeout(() => {
+  if (typeof navigator === "undefined" || navigator.onLine !== false) {
+    checkForAppUpdates(false);
+  }
+}, 1800);
 </script>
 <script type="module">
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -10403,7 +11120,7 @@ notifyMobileForFinancialState({ includeRecurring: true });
     const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
     window.asbilyFirebaseApp = app;
 
-    // 1. Realtime Database listener at /notifications
+    // 1. Realtime Database listeners (/notifications & /app_update)
     try {
       const rtdb = getDatabase(app);
       onValue(ref(rtdb, "notifications"), (snapshot) => {
@@ -10422,9 +11139,16 @@ notifyMobileForFinancialState({ includeRecurring: true });
           window.setFirebaseNotifications("rtdb", items);
         }
       }, () => {});
+
+      onValue(ref(rtdb, "app_update"), (snapshot) => {
+        const val = snapshot.val();
+        if (val && typeof val === "object" && typeof window.setRemoteAppUpdate === "function") {
+          window.setRemoteAppUpdate("rtdb", val);
+        }
+      }, () => {});
     } catch {}
 
-    // 2. Cloud Firestore listener at collection "notifications"
+    // 2. Cloud Firestore listeners (collection "notifications" & "app_update")
     try {
       const fs = getFirestore(app);
       onSnapshot(collection(fs, "notifications"), (snap) => {
@@ -10435,6 +11159,15 @@ notifyMobileForFinancialState({ includeRecurring: true });
         if (typeof window.setFirebaseNotifications === "function") {
           window.setFirebaseNotifications("firestore", items);
         }
+      }, () => {});
+
+      onSnapshot(collection(fs, "app_update"), (snap) => {
+        snap.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data && typeof window.setRemoteAppUpdate === "function") {
+            window.setRemoteAppUpdate("firestore", data);
+          }
+        });
       }, () => {});
     } catch {}
   } catch {}
