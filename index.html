@@ -1879,6 +1879,17 @@ main {
   border-color: var(--md-primary);
 }
 
+.picker-chip.picker-chip-add {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--md-primary) 45%, var(--md-outline-variant));
+  background: transparent;
+  color: var(--md-primary);
+}
+
+.picker-chip.picker-chip-add:active {
+  background: var(--md-secondary-container);
+}
+
 .setting-row {
   display: flex;
   align-items: center;
@@ -5982,7 +5993,12 @@ function renderTxCategoryChips() {
       ${iconSvg(c.icon)}
       <span>${esc(c.name)}</span>
     </button>
-  `).join("");
+  `).join("") + `
+    <button type="button" class="picker-chip picker-chip-add" onclick="openCategorySheet(txFormType)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <span>Add Category</span>
+    </button>
+  `;
 }
 
 function renderTxWalletChips() {
@@ -6827,7 +6843,15 @@ function saveCategory(e) {
     return;
   }
   const wasEdit = Boolean(editingCatName);
+  const editedOldName = editingCatName;
   closeSheet("catSheetScrim");
+  if (document.getElementById("txSheetScrim")?.classList.contains("open") && catFormType === txFormType) {
+    const txCatField = document.getElementById("txCatField");
+    if (txCatField && (!wasEdit || txCatField.value === editedOldName)) {
+      txCatField.value = clean;
+    }
+    renderTxCategoryChips();
+  }
   renderAll();
   showSnackbar(wasEdit ? "Category updated" : "Category created");
 }
