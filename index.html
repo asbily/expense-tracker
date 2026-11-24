@@ -173,7 +173,6 @@ body {
   -webkit-font-smoothing: antialiased;
   user-select: none;
   -webkit-user-select: none;
-  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 body.sheet-open {
@@ -1327,6 +1326,8 @@ main {
   position: relative;
   border-radius: 16px;
   overflow: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: 68px;
 }
 
 .tx-swipe-bg {
@@ -2780,6 +2781,9 @@ body.dark .snackbar-action {
     display: block !important;
     margin-bottom: 24px;
   }
+  .tx-swipe-wrap {
+    content-visibility: visible !important;
+  }
   #view-more, #view-categories, #view-recurring, #view-wallets, #view-deleted, #view-about, #view-help, #view-loans, #view-goals {
     display: none !important;
   }
@@ -3738,7 +3742,7 @@ body.dark .snackbar-action {
     <section class="view-section" id="view-about">
       <div class="about-hero">
         <div class="about-logo-frame">
-          <img src="./asbily-logo.jpg" alt="Asbily Logo" width="2160" height="2160">
+          <img src="./asbily-logo.jpg" alt="Asbily Logo" width="2160" height="2160" decoding="async" loading="lazy">
         </div>
         <h2 class="about-app-name">Expense</h2>
         <div class="about-byline">by Asbily</div>
@@ -4627,7 +4631,7 @@ body.dark .snackbar-action {
     <div class="update-hero-box">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
         <div class="brand-emblem" style="width:44px;height:44px;border-radius:13px;background:#000000;border:1px solid var(--md-outline-variant);flex-shrink:0">
-          <img src="./asbily-logo.jpg" alt="Asbily Logo" width="2160" height="2160">
+          <img src="./asbily-logo.jpg" alt="Asbily Logo" width="2160" height="2160" decoding="async" loading="lazy">
         </div>
         <div style="min-width:0">
           <div style="font-size:15px;font-weight:800;letter-spacing:-0.2px">Asbily Expense Tracker</div>
@@ -4947,20 +4951,33 @@ function isStorageAvailable() {
   }
 }
 
+const _persistedJsonCache = Object.create(null);
+
 function persistAll() {
   try {
     if (typeof localStorage === "undefined") {
       showSnackbar("Storage unavailable.");
       return false;
     }
-    localStorage.setItem(KEYS.TX, JSON.stringify(transactions));
-    localStorage.setItem(KEYS.TRASH, JSON.stringify(deletedTransactions));
-    localStorage.setItem(KEYS.CAT, JSON.stringify(categories));
-    localStorage.setItem(KEYS.REC, JSON.stringify(recurringItems));
-    localStorage.setItem(KEYS.WAL, JSON.stringify(wallets));
-    localStorage.setItem(KEYS.LOANS, JSON.stringify(loans));
-    localStorage.setItem(KEYS.GOALS, JSON.stringify(goals));
-    localStorage.setItem(KEYS.SET, JSON.stringify(settings));
+    const storeEmpty = localStorage.length === 0;
+    const entries = [
+      [KEYS.TX, transactions],
+      [KEYS.TRASH, deletedTransactions],
+      [KEYS.CAT, categories],
+      [KEYS.REC, recurringItems],
+      [KEYS.WAL, wallets],
+      [KEYS.LOANS, loans],
+      [KEYS.GOALS, goals],
+      [KEYS.SET, settings]
+    ];
+    for (let i = 0; i < entries.length; i++) {
+      const k = entries[i][0];
+      const serialized = JSON.stringify(entries[i][1]);
+      if (storeEmpty || _persistedJsonCache[k] !== serialized) {
+        localStorage.setItem(k, serialized);
+        _persistedJsonCache[k] = serialized;
+      }
+    }
     return true;
   } catch (err) {
     const isQuota = err && (err.name === "QuotaExceededError" || err.code === 22 || err.code === 1014);
@@ -5092,7 +5109,8 @@ function closeSheet(scrimId, opts = {}) {
 }
 
 function getTopOpenSheetId() {
-  const openSheets = Array.from(document.querySelectorAll(".sheet-scrim.open"));
+  if (!document.body.classList.contains("sheet-open")) return null;
+  const openSheets = document.querySelectorAll(".sheet-scrim.open");
   return openSheets.length ? openSheets[openSheets.length - 1].id : null;
 }
 
@@ -5107,13 +5125,15 @@ const EYE_OPEN_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 const EYE_OFF_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
 const TRANSFER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 5h18"/><polyline points="7 23 3 19 7 15"/><path d="M21 19H3"/></svg>';
 
+const NUM_FORMATTERS = {
+  "en-IN": new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+  "en-US": new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+};
+
 function money(val) {
   const sym = SYMBOLS[settings.currency] || "৳";
   const locale = settings.numFormat === "bn" ? "en-IN" : "en-US";
-  return sym + Number(val || 0).toLocaleString(locale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  return sym + NUM_FORMATTERS[locale].format(Number(val || 0));
 }
 
 function maskMoneyStr() {
@@ -5188,7 +5208,13 @@ function yesterdayStr() {
   return formatLocalDate(d);
 }
 
+let _frameAgg = null;
+let _frameAggMonth = "";
+
 function buildTxAggregates(curMonth = todayStr().slice(0, 7), cutoff30 = null) {
+  if (_frameAgg && _frameAggMonth === curMonth && !cutoff30) {
+    return _frameAgg;
+  }
   if (!cutoff30) {
     const d30 = new Date();
     d30.setDate(d30.getDate() - 30);
@@ -5274,18 +5300,51 @@ function getOffsetMonthInfo(offset) {
   return { ym, label };
 }
 
+const ICON_SVG_CACHE = Object.create(null);
 function iconSvg(key) {
-  const path = ICONS[key] || ICONS.tag;
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+  const k = ICONS[key] ? key : "tag";
+  if (!ICON_SVG_CACHE[k]) {
+    ICON_SVG_CACHE[k] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>`;
+  }
+  return ICON_SVG_CACHE[k];
+}
+
+let _walletNameMap = null;
+let _catIconMap = null;
+
+function syncLookupMaps() {
+  const wMap = Object.create(null);
+  for (let i = 0; i < wallets.length; i++) {
+    const w = wallets[i];
+    if (w && w.id) wMap[w.id] = w.name;
+  }
+  _walletNameMap = wMap;
+
+  const cMap = Object.create(null);
+  ["income", "expense"].forEach(type => {
+    const list = categories[type] || [];
+    for (let i = 0; i < list.length; i++) {
+      const c = list[i];
+      if (c && c.name) cMap[`${type}:${c.name}`] = c.icon;
+    }
+  });
+  _catIconMap = cMap;
 }
 
 function catIconSvg(type, catName) {
   if (type === "transfer") return TRANSFER_SVG;
+  if (_catIconMap) {
+    const iconKey = _catIconMap[`${type}:${catName}`];
+    return iconSvg(iconKey || "tag");
+  }
   const found = (categories[type] || []).find(c => c.name === catName);
   return iconSvg(found ? found.icon : "tag");
 }
 
 function getWalletName(walletId) {
+  if (_walletNameMap && walletId in _walletNameMap) {
+    return _walletNameMap[walletId];
+  }
   const w = wallets.find(x => x.id === walletId);
   return w ? w.name : "Cash";
 }
@@ -6690,26 +6749,63 @@ function openHeroFlowFilter(type) {
 }
 
 function renderHome() {
+  syncLookupMaps();
   const { ym, label } = getOffsetMonthInfo(homeMonthOffset);
   const { ym: prevYm, label: prevLabel } = getOffsetMonthInfo(homeMonthOffset - 1);
   document.getElementById("heroPeriodLabel").textContent = homeShowAllTime ? "All Time" : label;
   document.getElementById("heroBalanceTitle").textContent = homeShowAllTime ? "CUMULATIVE NET POSITION" : `${label.toUpperCase()} NET CASH FLOW`;
 
-  const periodTxs = homeShowAllTime
-    ? transactions
-    : transactions.filter(t => t.date.startsWith(ym));
+  let pIncome = 0;
+  let pExpense = 0;
+  let pIncomeCount = 0;
+  let pExpenseCount = 0;
+  let pTotalCount = 0;
+  let prevCount = 0;
+  let prevNet = 0;
+  const recent = [];
 
-  const pTotals = periodTxs.reduce((acc, t) => {
-    if (t.type === "income") {
-      acc.income += Number(t.amount);
-      acc.incomeCount += 1;
-    } else if (t.type === "expense") {
-      acc.expense += Number(t.amount);
-      acc.expenseCount += 1;
+  for (let i = 0; i < transactions.length; i++) {
+    const t = transactions[i];
+    if (!t) continue;
+    const dStr = String(t.date || "");
+    const amt = Number(t.amount) || 0;
+
+    if (homeShowAllTime || dStr.startsWith(ym)) {
+      pTotalCount += 1;
+      if (t.type === "income") {
+        pIncome += amt;
+        pIncomeCount += 1;
+      } else if (t.type === "expense") {
+        pExpense += amt;
+        pExpenseCount += 1;
+      }
     }
-    return acc;
-  }, { income: 0, expense: 0, incomeCount: 0, expenseCount: 0 });
+    if (!homeShowAllTime && dStr.startsWith(prevYm)) {
+      prevCount += 1;
+      if (t.type === "income") prevNet += amt;
+      else if (t.type === "expense") prevNet -= amt;
+    }
 
+    // O(N) Top-5 most recent buffer without copying or sorting the whole array
+    const tId = String(t.id || "");
+    let pos = recent.length;
+    while (pos > 0) {
+      const cur = recent[pos - 1];
+      const curD = String(cur.date || "");
+      const curId = String(cur.id || "");
+      if (dStr > curD || (dStr === curD && tId > curId)) {
+        pos -= 1;
+      } else {
+        break;
+      }
+    }
+    if (pos < 5) {
+      recent.splice(pos, 0, t);
+      if (recent.length > 5) recent.pop();
+    }
+  }
+
+  const pTotals = { income: pIncome, expense: pExpense, incomeCount: pIncomeCount, expenseCount: pExpenseCount };
   const pNet = pTotals.income - pTotals.expense;
   const heroNetEl = document.getElementById("heroNetAmount");
   heroNetEl.textContent = privSignedMoney(pNet);
@@ -6734,13 +6830,13 @@ function renderHome() {
 
   document.getElementById("heroIncomeSub").textContent = `${pTotals.incomeCount} entr${pTotals.incomeCount === 1 ? "y" : "ies"}${totalFlow > 0 ? ` · ${inShare}%` : ""}`;
   document.getElementById("heroExpenseSub").textContent = `${pTotals.expenseCount} entr${pTotals.expenseCount === 1 ? "y" : "ies"}${totalFlow > 0 ? ` · ${outShare}%` : ""}`;
-  document.getElementById("heroTxCaption").textContent = `${periodTxs.length} ${periodTxs.length === 1 ? "ENTRY" : "ENTRIES"}`;
+  document.getElementById("heroTxCaption").textContent = `${pTotalCount} ${pTotalCount === 1 ? "ENTRY" : "ENTRIES"}`;
 
   const curCalendarMonth = todayStr().slice(0, 7);
   const d30 = new Date();
   d30.setDate(d30.getDate() - 30);
   const cutoff30 = formatLocalDate(d30);
-  const agg = buildTxAggregates(curCalendarMonth, cutoff30);
+  const agg = (_frameAgg && _frameAggMonth === curCalendarMonth) ? _frameAgg : buildTxAggregates(curCalendarMonth, cutoff30);
 
   // Executive Deficit / Low-Balance Status Strip (Monochrome — no red warning)
   const lossBanner = document.getElementById("homeLossAlertBanner");
@@ -6780,13 +6876,11 @@ function renderHome() {
       ? `Net Margin: ${margin >= 0 ? "+" : ""}${margin.toFixed(1)}%`
       : "Cumulative Ledger";
   } else {
-    const prevTxs = transactions.filter(t => String(t.date || "").startsWith(prevYm));
-    const prevNet = prevTxs.reduce((s, t) => s + (t.type === "income" ? Number(t.amount) : t.type === "expense" ? -Number(t.amount) : 0), 0);
     const prevShort = prevLabel.split(" ")[0];
-    if (prevTxs.length === 0 && periodTxs.length === 0) {
+    if (prevCount === 0 && pTotalCount === 0) {
       deltaBadge.className = "hero-delta-text num";
       deltaBadge.textContent = "Baseline Period";
-    } else if (prevTxs.length === 0) {
+    } else if (prevCount === 0) {
       const margin = pTotals.income > 0 ? ((pNet / pTotals.income) * 100) : 0;
       deltaBadge.className = "hero-delta-text num " + (pNet > 0 ? "up" : pNet < 0 ? "down" : "");
       deltaBadge.textContent = pTotals.income > 0
@@ -6897,11 +6991,6 @@ function renderHome() {
   } else {
     banner.style.display = "none";
   }
-
-  // Recent Activity (Top 5)
-  const recent = [...transactions]
-    .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.id || "").localeCompare(String(a.id || "")))
-    .slice(0, 5);
 
   document.getElementById("homeRecentList").innerHTML = recent.length
     ? recent.map(txRowHTML).join("")
@@ -7531,16 +7620,34 @@ function emptyHTML(title, desc) {
 /* ==========================================================================
    ACTIVITY VIEW (DATE-GROUPED LEDGER, CUSTOM RANGE & FILTER SUMMARY)
    ========================================================================== */
+const ACTIVITY_PAGE_SIZE = 80;
+let activityRenderLimit = ACTIVITY_PAGE_SIZE;
+const DATE_LABEL_CACHE = new Map();
+
+function formatGroupDateLabel(dateKey) {
+  if (DATE_LABEL_CACHE.has(dateKey)) return DATE_LABEL_CACHE.get(dateKey);
+  let label = dateKey;
+  const parsed = new Date(dateKey + "T00:00:00");
+  if (!isNaN(parsed)) {
+    label = parsed.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  }
+  if (DATE_LABEL_CACHE.size > 400) DATE_LABEL_CACHE.clear();
+  DATE_LABEL_CACHE.set(dateKey, label);
+  return label;
+}
+
 let activitySearchTimer = null;
 function scheduleActivitySearch() {
   clearTimeout(activitySearchTimer);
   activitySearchTimer = setTimeout(() => {
+    activityRenderLimit = ACTIVITY_PAGE_SIZE;
     renderActivity();
   }, 90);
 }
 
 function setActivityTypeFilter(type) {
   activityTypeFilter = type;
+  activityRenderLimit = ACTIVITY_PAGE_SIZE;
   document.querySelectorAll("#activityFilterChips [data-type]").forEach(btn => {
     btn.classList.toggle("selected", btn.dataset.type === type);
   });
@@ -7549,6 +7656,7 @@ function setActivityTypeFilter(type) {
 
 function toggleActivityPeriodChip(period) {
   activityPeriodFilter = activityPeriodFilter === period ? "all" : period;
+  activityRenderLimit = ACTIVITY_PAGE_SIZE;
   if (activityPeriodFilter === "custom") {
     if (!activityCustomFrom) activityCustomFrom = todayStr().slice(0, 7) + "-01";
     if (!activityCustomTo) activityCustomTo = todayStr();
@@ -7567,6 +7675,7 @@ function onActivityCustomDateChange() {
   activityCustomFrom = document.getElementById("activityFromDate")?.value || "";
   activityCustomTo = document.getElementById("activityToDate")?.value || "";
   activityPeriodFilter = "custom";
+  activityRenderLimit = ACTIVITY_PAGE_SIZE;
   document.querySelectorAll("#activityFilterChips [data-period]").forEach(btn => {
     btn.classList.toggle("selected", btn.dataset.period === "custom");
   });
@@ -7575,10 +7684,17 @@ function onActivityCustomDateChange() {
 
 function setActivityWalletFilter(wId) {
   activityWalletFilter = activityWalletFilter === wId ? "all" : wId;
+  activityRenderLimit = ACTIVITY_PAGE_SIZE;
+  renderActivity();
+}
+
+function loadMoreActivity() {
+  activityRenderLimit += ACTIVITY_PAGE_SIZE;
   renderActivity();
 }
 
 function renderActivity() {
+  syncLookupMaps();
   document.getElementById("activityWalletFilterChips").innerHTML = wallets.map(w => `
     <button type="button" class="m3-chip ${activityWalletFilter === w.id ? 'selected' : ''}" onclick="setActivityWalletFilter(${jsAttr(w.id)})">
       ${iconSvg(w.icon)}
@@ -7607,27 +7723,43 @@ function renderActivity() {
     toBound = tmp;
   }
 
-  let list = transactions.filter(t => {
+  const list = [];
+  for (let i = 0; i < transactions.length; i++) {
+    const t = transactions[i];
+    if (!t) continue;
+    if (activityTypeFilter !== "all" && t.type !== activityTypeFilter) continue;
     const wId = t.walletId || defaultWalId;
-    const wName = getWalletName(wId);
-    const toWName = t.type === "transfer" && t.toWalletId ? getWalletName(t.toWalletId) : "";
-    const matchesQ = !q || `${t.title} ${t.category} ${wName} ${toWName} ${t.note || ""}`.toLowerCase().includes(q);
-    const matchesType = activityTypeFilter === "all" || t.type === activityTypeFilter;
-    const matchesWallet = activityWalletFilter === "all" || wId === activityWalletFilter || (t.type === "transfer" && t.toWalletId === activityWalletFilter);
-    const matchesPeriod =
-      activityPeriodFilter === "all" ||
-      (activityPeriodFilter === "today" && t.date === today) ||
-      (activityPeriodFilter === "month" && String(t.date || "").startsWith(month)) ||
-      (activityPeriodFilter === "year" && String(t.date || "").startsWith(year)) ||
-      (activityPeriodFilter === "custom" && (!fromBound || t.date >= fromBound) && (!toBound || t.date <= toBound));
-    return matchesQ && matchesType && matchesWallet && matchesPeriod;
-  });
+    if (activityWalletFilter !== "all" && wId !== activityWalletFilter && !(t.type === "transfer" && t.toWalletId === activityWalletFilter)) continue;
 
-  list.sort((a, b) => {
-    if (sortMode === "highest") return Number(b.amount) - Number(a.amount);
-    if (sortMode === "lowest") return Number(a.amount) - Number(b.amount);
-    return String(b.date || "").localeCompare(String(a.date || "")) || String(b.id || "").localeCompare(String(a.id || ""));
-  });
+    const tDate = String(t.date || "");
+    if (activityPeriodFilter === "today" && tDate !== today) continue;
+    else if (activityPeriodFilter === "month" && !tDate.startsWith(month)) continue;
+    else if (activityPeriodFilter === "year" && !tDate.startsWith(year)) continue;
+    else if (activityPeriodFilter === "custom" && ((fromBound && tDate < fromBound) || (toBound && tDate > toBound))) continue;
+
+    if (q) {
+      const wName = getWalletName(wId);
+      const toWName = t.type === "transfer" && t.toWalletId ? getWalletName(t.toWalletId) : "";
+      const hay = `${t.title} ${t.category} ${wName} ${toWName} ${t.note || ""}`.toLowerCase();
+      if (!hay.includes(q)) continue;
+    }
+    list.push(t);
+  }
+
+  if (sortMode === "highest") {
+    list.sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0));
+  } else if (sortMode === "lowest") {
+    list.sort((a, b) => (Number(a.amount) || 0) - (Number(b.amount) || 0));
+  } else {
+    list.sort((a, b) => {
+      const da = String(a.date || "");
+      const db = String(b.date || "");
+      if (da !== db) return db > da ? 1 : -1;
+      const ia = String(a.id || "");
+      const ib = String(b.id || "");
+      return ib > ia ? 1 : (ib < ia ? -1 : 0);
+    });
+  }
 
   lastFilteredActivityList = list;
   document.getElementById("activityResultCount").textContent = `${list.length} entr${list.length === 1 ? "y" : "ies"}`;
@@ -7664,29 +7796,32 @@ function renderActivity() {
     return;
   }
 
+  const visibleList = list.length > activityRenderLimit ? list.slice(0, activityRenderLimit) : list;
+  const remaining = list.length - visibleList.length;
+  const loadMoreHTML = remaining > 0
+    ? `<button type="button" class="m3-btn-outlined ripple-host" style="width:100%;margin-top:12px" onclick="loadMoreActivity()">Load More (${remaining} remaining)</button>`
+    : "";
+
   if (sortMode !== "newest") {
-    container.innerHTML = `<div class="tx-list">${list.map(txRowHTML).join("")}</div>`;
+    container.innerHTML = `<div class="tx-list">${visibleList.map(txRowHTML).join("")}</div>${loadMoreHTML}`;
     return;
   }
 
-  const groups = {};
-  for (const t of list) {
+  const groups = Object.create(null);
+  for (let i = 0; i < visibleList.length; i++) {
+    const t = visibleList[i];
     if (!groups[t.date]) groups[t.date] = [];
     groups[t.date].push(t);
   }
 
   container.innerHTML = Object.entries(groups).map(([dateKey, items]) => {
-    let label = dateKey;
-    if (dateKey === today) label = "Today";
-    else if (dateKey === yest) label = "Yesterday";
-    else {
-      const parsed = new Date(dateKey + "T00:00:00");
-      if (!isNaN(parsed)) {
-        label = parsed.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
-      }
+    const label = dateKey === today ? "Today" : (dateKey === yest ? "Yesterday" : formatGroupDateLabel(dateKey));
+    let dayNet = 0;
+    for (let j = 0; j < items.length; j++) {
+      const it = items[j];
+      if (it.type === "income") dayNet += Number(it.amount) || 0;
+      else if (it.type === "expense") dayNet -= Number(it.amount) || 0;
     }
-
-    const dayNet = items.reduce((s, x) => s + (x.type === "income" ? Number(x.amount) : x.type === "expense" ? -Number(x.amount) : 0), 0);
     const dayNetText = settings.hideBalances ? maskMoneyStr() : `${dayNet >= 0 ? "+" : "−"}${money(Math.abs(dayNet))}`;
     return `
       <div class="date-group-header">
@@ -7695,7 +7830,7 @@ function renderActivity() {
       </div>
       <div class="tx-list">${items.map(txRowHTML).join("")}</div>
     `;
-  }).join("");
+  }).join("") + loadMoreHTML;
 }
 
 /* ==========================================================================
@@ -10472,36 +10607,62 @@ function updateMoreSubLabels() {
 
 function renderAll(opts = {}) {
   const forceAll = Boolean(opts && opts.forceAll);
-  if (forceAll || currentView === "home") renderHome();
-  if (forceAll || currentView === "activity") renderActivity();
-  if (forceAll || currentView === "analytics") renderAnalytics();
-  if (forceAll || currentView === "budget") renderBudget();
-  if (forceAll || currentView === "categories") renderCategories();
-  if (forceAll || currentView === "recurring") renderRecurring();
-  if (forceAll || currentView === "wallets") renderWalletsManager();
-  if (forceAll || currentView === "loans") renderLoans();
-  if (forceAll || currentView === "goals") renderGoals();
-  if (forceAll || currentView === "deleted") renderDeleted();
-  if (forceAll || currentView === "help") renderHelp();
-  updateMoreSubLabels();
-  updateNotificationBadge();
-  updateBackupStatsSummary();
-  if (typeof syncUpdateStatusLabels === "function") syncUpdateStatusLabels();
+  const curMonth = todayStr().slice(0, 7);
+  syncLookupMaps();
+  _frameAggMonth = curMonth;
+  _frameAgg = buildTxAggregates(curMonth);
+  try {
+    if (forceAll || currentView === "home") renderHome();
+    if (forceAll || currentView === "activity") renderActivity();
+    if (forceAll || currentView === "analytics") renderAnalytics();
+    if (forceAll || currentView === "budget") renderBudget();
+    if (forceAll || currentView === "categories") renderCategories();
+    if (forceAll || currentView === "recurring") renderRecurring();
+    if (forceAll || currentView === "wallets") renderWalletsManager();
+    if (forceAll || currentView === "loans") renderLoans();
+    if (forceAll || currentView === "goals") renderGoals();
+    if (forceAll || currentView === "deleted") renderDeleted();
+    if (forceAll || currentView === "help") renderHelp();
+    updateMoreSubLabels();
+    updateNotificationBadge();
+    updateBackupStatsSummary();
+    if (typeof syncUpdateStatusLabels === "function") syncUpdateStatusLabels();
+  } finally {
+    _frameAgg = null;
+    _frameAggMonth = "";
+  }
 }
 
 /* ==========================================================================
    ANDROID GESTURES: SWIPE-TO-DELETE, LONG-PRESS, SCROLL & PULL-TO-REFRESH
    ========================================================================== */
 (function initAndroidGestures() {
-  // 1. Scroll-aware Top App Bar & Extended FAB collapse
+  // 1. Scroll-aware Top App Bar & Extended FAB collapse (rAF-throttled, cached refs)
+  const topBarEl = document.querySelector(".top-app-bar");
+  const fabEl = document.getElementById("mainFab");
+  let scrollRafPending = false;
+  let lastTopScrolled = null;
+  let lastFabScrolled = null;
+
   window.addEventListener("scroll", () => {
-    const y = window.scrollY;
-    const topBar = document.querySelector(".top-app-bar");
-    if (topBar) topBar.classList.toggle("scrolled", y > 4);
-    const fab = document.getElementById("mainFab");
-    if (fab && fab.style.display !== "none") {
-      fab.classList.toggle("is-scrolled", y > 80);
-    }
+    if (scrollRafPending) return;
+    scrollRafPending = true;
+    requestAnimationFrame(() => {
+      scrollRafPending = false;
+      const y = window.scrollY;
+      const topScrolled = y > 4;
+      if (topBarEl && topScrolled !== lastTopScrolled) {
+        lastTopScrolled = topScrolled;
+        topBarEl.classList.toggle("scrolled", topScrolled);
+      }
+      if (fabEl && fabEl.style.display !== "none") {
+        const fabScrolled = y > 80;
+        if (fabScrolled !== lastFabScrolled) {
+          lastFabScrolled = fabScrolled;
+          fabEl.classList.toggle("is-scrolled", fabScrolled);
+        }
+      }
+    });
   }, { passive: true });
 
   // 2. Keyboard support for PIN screen & Escape key to close sheets
