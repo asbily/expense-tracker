@@ -2666,6 +2666,92 @@ body.dark .snackbar-action {
 }
 
 /* ==========================================================================
+   HELP & USER GUIDE VIEW STYLES
+   ========================================================================== */
+.help-hero-card {
+  background: var(--md-surface-container-low);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.help-faq-card {
+  background: var(--md-surface-container-lowest);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.16s ease;
+}
+
+.help-faq-card.open {
+  border-color: var(--md-outline);
+}
+
+.help-faq-trigger {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  color: var(--md-on-surface);
+  cursor: pointer;
+}
+
+.help-faq-q-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.help-topic-tag {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--md-on-surface-variant);
+  margin-bottom: 4px;
+}
+
+.help-faq-q {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--md-on-surface);
+}
+
+.help-faq-chev {
+  width: 18px;
+  height: 18px;
+  color: var(--md-outline);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.help-faq-card.open .help-faq-chev {
+  transform: rotate(180deg);
+  color: var(--md-on-surface);
+}
+
+.help-faq-body {
+  display: none;
+  padding: 0 16px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--md-on-surface-variant);
+  border-top: 1px solid var(--md-outline-variant);
+  padding-top: 11px;
+  white-space: pre-line;
+}
+
+.help-faq-card.open .help-faq-body {
+  display: block;
+}
+
+/* ==========================================================================
    PRINT / PDF SUMMARY STYLES
    ========================================================================== */
 @media print {
@@ -2694,7 +2780,7 @@ body.dark .snackbar-action {
     display: block !important;
     margin-bottom: 24px;
   }
-  #view-more, #view-categories, #view-recurring, #view-wallets, #view-deleted, #view-about, #view-loans, #view-goals {
+  #view-more, #view-categories, #view-recurring, #view-wallets, #view-deleted, #view-about, #view-help, #view-loans, #view-goals {
     display: none !important;
   }
 }
@@ -3474,6 +3560,32 @@ body.dark .snackbar-action {
 
         <div style="height:1px;background:var(--md-outline-variant)"></div>
 
+        <div class="tx-card ripple-host" id="moreHelpRow" style="border:none;box-shadow:none;padding:10px 4px" onclick="switchView('help')">
+          <div class="tx-leading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="tx-center">
+            <div class="tx-name">Help &amp; Guide</div>
+            <div class="tx-sub">FAQs, backup tips &amp; support</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+
+        <div style="height:1px;background:var(--md-outline-variant)"></div>
+
+        <div class="tx-card ripple-host" id="moreShareRow" style="border:none;box-shadow:none;padding:10px 4px" onclick="openShareAppSheet()">
+          <div class="tx-leading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </div>
+          <div class="tx-center">
+            <div class="tx-name">Share App</div>
+            <div class="tx-sub">Share Asbily Expense Tracker with friends</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+
+        <div style="height:1px;background:var(--md-outline-variant)"></div>
+
         <div class="tx-card ripple-host" style="border:none;box-shadow:none;padding:10px 4px" onclick="switchView('about')">
           <div class="tx-leading">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -3481,6 +3593,22 @@ body.dark .snackbar-action {
           <div class="tx-center">
             <div class="tx-name">About</div>
             <div class="tx-sub">Expense by Asbily · Version 1.0.0</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2 class="section-title">Store</h2>
+      </div>
+      <div class="m3-card" style="padding:10px 14px">
+        <div class="tx-card ripple-host" id="moreStoreRow" style="border:none;box-shadow:none;padding:10px 4px" onclick="openAboutDoc('store')">
+          <div class="tx-leading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <div class="tx-center">
+            <div class="tx-name">App details</div>
+            <div class="tx-sub">App installed from Asbily App Store</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
@@ -3729,6 +3857,19 @@ body.dark .snackbar-action {
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+
+        <div style="height:1px;background:var(--md-outline-variant)"></div>
+
+        <div class="tx-card ripple-host" id="aboutShareRow" style="border:none;box-shadow:none;padding:10px 4px" onclick="openShareAppSheet()">
+          <div class="tx-leading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </div>
+          <div class="tx-center">
+            <div class="tx-name">Share App</div>
+            <div class="tx-sub">Send app link &amp; invite message</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
       </div>
 
       <div class="about-platform-lockup">
@@ -3760,6 +3901,76 @@ body.dark .snackbar-action {
         <div class="about-url-row ripple-host" onclick="openAboutDoc('open-source-licenses')">
           <span class="about-url-name">Open Source Licenses</span>
           <span class="about-url-path">platforms.asbily.com/expense-tracker/open-source-licenses</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SUB-VIEW H: HELP & USER GUIDE
+         ==================================================================== -->
+    <section class="view-section" id="view-help">
+      <div class="help-hero-card">
+        <div style="font-size:15px;font-weight:800;letter-spacing:-0.2px;margin-bottom:4px">Asbily Expense Tracker Guide</div>
+        <p class="sub-note" style="line-height:1.5">Search answers for transactions, wallets, transfers, loans, savings goals, backups, and security.</p>
+      </div>
+
+      <div class="m3-search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="m3-input" id="helpSearchInput" placeholder="Search help topics (e.g. backup, transfer, PIN)..." oninput="scheduleHelpSearch()">
+      </div>
+
+      <div class="chip-strip" id="helpTopicChips" style="margin-bottom:12px">
+        <button type="button" class="m3-chip selected" data-help-cat="all" onclick="setHelpFilter('all')">All</button>
+        <button type="button" class="m3-chip" data-help-cat="Transactions" onclick="setHelpFilter('Transactions')">Transactions</button>
+        <button type="button" class="m3-chip" data-help-cat="Wallets" onclick="setHelpFilter('Wallets')">Wallets</button>
+        <button type="button" class="m3-chip" data-help-cat="Loans & Goals" onclick="setHelpFilter('Loans & Goals')">Loans &amp; Goals</button>
+        <button type="button" class="m3-chip" data-help-cat="Backup & Reports" onclick="setHelpFilter('Backup & Reports')">Backup &amp; Reports</button>
+        <button type="button" class="m3-chip" data-help-cat="Security" onclick="setHelpFilter('Security')">Security</button>
+      </div>
+
+      <div class="tx-list" id="helpFaqList"></div>
+
+      <div class="section-header" style="margin-top:18px">
+        <h2 class="section-title">Need More Help?</h2>
+      </div>
+      <div class="m3-card" style="padding:12px 14px">
+        <div class="tx-card ripple-host" style="border:none;box-shadow:none;padding:10px 4px" onclick="openAboutDoc('support')">
+          <div class="tx-leading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div class="tx-center">
+            <div class="tx-name">Contact Asbily Support</div>
+            <div class="tx-sub">support@asbily.com</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+
+        <div style="height:1px;background:var(--md-outline-variant)"></div>
+
+        <div class="tx-card ripple-host" style="border:none;box-shadow:none;padding:10px 4px" onclick="openAppUpdateSheet(true)">
+          <div class="tx-leading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </div>
+          <div class="tx-center">
+            <div class="tx-name">Check for App Updates</div>
+            <div class="tx-sub">Verify the latest Asbily release</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+
+        <div style="height:1px;background:var(--md-outline-variant)"></div>
+
+        <div class="tx-card ripple-host" style="border:none;box-shadow:none;padding:10px 4px" onclick="openAboutDoc('website')">
+          <div class="tx-leading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div class="tx-center">
+            <div class="tx-name">Official Website</div>
+            <div class="tx-sub">platforms.asbily.com/expense-tracker/</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--md-outline)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </div>
     </section>
@@ -4394,6 +4605,59 @@ body.dark .snackbar-action {
       </button>
     </div>
     <div id="updateSheetBody"></div>
+  </div>
+</div>
+
+<!-- ========================================================================
+     BOTTOM SHEET 17: SHARE APP
+     ======================================================================== -->
+<div class="sheet-scrim" id="shareSheetScrim" onclick="onScrimClick(event, 'shareSheetScrim')">
+  <div class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="shareSheetTitle">
+    <div class="sheet-drag-zone" data-sheet="shareSheetScrim"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title" id="shareSheetTitle">Share App</h2>
+        <div class="sub-note num">Asbily Expense Tracker · v1.0.0</div>
+      </div>
+      <button type="button" class="md-icon-btn compact" onclick="closeSheet('shareSheetScrim')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="update-hero-box">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div class="brand-emblem" style="width:44px;height:44px;border-radius:13px;background:#000000;border:1px solid var(--md-outline-variant);flex-shrink:0">
+          <img src="./asbily-logo.jpg" alt="Asbily Logo" width="2160" height="2160">
+        </div>
+        <div style="min-width:0">
+          <div style="font-size:15px;font-weight:800;letter-spacing:-0.2px">Asbily Expense Tracker</div>
+          <div class="sub-note" style="margin-top:2px">Offline-first personal finance, wallets, loans &amp; goals</div>
+        </div>
+      </div>
+      <div class="update-changelog" id="sharePreviewText" style="margin-bottom:10px"></div>
+      <div class="update-meta-list" style="margin-top:0;padding-top:10px">
+        <div class="update-meta-row">
+          <span class="update-meta-k">Official Link</span>
+          <span class="update-meta-v num" id="shareLinkText">platforms.asbily.com/expense-tracker/</span>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="m3-btn-filled ripple-host" id="sharePrimaryBtn" style="width:100%;margin-bottom:10px" onclick="shareAsbilyApp()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share via System Sheet
+    </button>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button type="button" class="m3-btn-outlined ripple-host" onclick="copyShareText('link')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Copy Link
+      </button>
+      <button type="button" class="m3-btn-outlined ripple-host" onclick="copyShareText('message')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy Message
+      </button>
+    </div>
   </div>
 </div>
 
@@ -6154,10 +6418,11 @@ const VIEW_TITLES = {
   loans: "Loans & Dues",
   goals: "Savings Goals",
   deleted: "Deleted",
+  help: "Help & Guide",
   about: "About"
 };
 
-const SUB_VIEWS = ["categories", "recurring", "wallets", "loans", "goals", "deleted", "about"];
+const SUB_VIEWS = ["categories", "recurring", "wallets", "loans", "goals", "deleted", "help", "about"];
 
 function applyViewUI(viewName, direction = "tab") {
   currentView = viewName;
@@ -10217,6 +10482,7 @@ function renderAll(opts = {}) {
   if (forceAll || currentView === "loans") renderLoans();
   if (forceAll || currentView === "goals") renderGoals();
   if (forceAll || currentView === "deleted") renderDeleted();
+  if (forceAll || currentView === "help") renderHelp();
   updateMoreSubLabels();
   updateNotificationBadge();
   updateBackupStatsSummary();
@@ -10454,6 +10720,24 @@ const ABOUT_DOCS = {
       }
     ]
   },
+  store: {
+    title: "App details · Asbily App Store",
+    subtitle: "App installed from Asbily App Store",
+    copyLabel: "Copy Store URL",
+    copyValue: "https://platforms.asbily.com/expense-tracker/",
+    openLabel: "Open Store Page",
+    openHref: "https://platforms.asbily.com/expense-tracker/",
+    sections: [
+      {
+        heading: "Store Source",
+        body: "App installed from Asbily App Store (Asbily Platforms)."
+      },
+      {
+        heading: "Application Details",
+        body: "App Name: Expense · Package: com.asbily.expensetracker · Version: 1.0.0."
+      }
+    ]
+  },
   privacy: {
     title: "Privacy Policy",
     subtitle: "https://platforms.asbily.com/expense-tracker/privacy",
@@ -10587,6 +10871,249 @@ function openAboutDoc(key) {
   }
 
   openSheet("aboutDocSheetScrim");
+}
+
+/* ==========================================================================
+   HELP & USER GUIDE (SEARCHABLE FAQ ACCORDION)
+   ========================================================================== */
+const HELP_FAQS = [
+  {
+    id: "faq-record",
+    category: "Transactions",
+    q: "How do I record income, expenses, or add a new category?",
+    a: "Tap the + Record button at the bottom right to open the transaction sheet.\n• Choose Expense, Income, or Transfer.\n• Type a title (recent matching titles appear automatically for quick fill).\n• Need a new category? Tap + Add Category right inside the transaction sheet or manage all icons under More → Categories."
+  },
+  {
+    id: "faq-edit-delete",
+    category: "Transactions",
+    q: "How do I edit, search, or recover a deleted transaction?",
+    a: "• Tap any transaction in Home or Activity to edit its amount, wallet, category, date, or note.\n• Swipe left on a card or tap Delete inside Edit to move it to Deleted Records.\n• Open More → Deleted Records to restore an accidentally deleted entry or permanently erase it."
+  },
+  {
+    id: "faq-wallets-transfer",
+    category: "Wallets",
+    q: "How do Wallet Transfers work without affecting my monthly expense total?",
+    a: "When moving money between your own accounts (for example, Bank Account to Cash or Mobile Banking), choose Transfer in the + Record sheet or tap Transfer on the Home screen.\n\nTransfers adjust the From Wallet and To Wallet balances cleanly while keeping your Monthly Income and Expense Analytics accurate."
+  },
+  {
+    id: "faq-wallets-add",
+    category: "Wallets",
+    q: "Can I add custom wallets like bKash, Nagad, or Savings Card?",
+    a: "Yes. Tap + Add Wallet directly inside the transaction sheet or visit More → Wallets & Accounts to add, rename, or set icons for custom wallets."
+  },
+  {
+    id: "faq-loans",
+    category: "Loans & Goals",
+    q: "How do I track money lent to or borrowed from others?",
+    a: "Open More → Loans & Dues Tracker:\n• Choose Receivable when someone owes you money, or Payable when you owe someone.\n• Tap Record Payment on any loan to log partial or full settlements and optionally link the payment to a wallet."
+  },
+  {
+    id: "faq-goals",
+    category: "Loans & Goals",
+    q: "How do Savings Goals and Recurring Schedules work?",
+    a: "• Savings Goals (More → Savings Goals): Set a target amount and deposit or withdraw from your wallets while tracking progress.\n• Recurring Bills & Income (More → Recurring Transactions): Schedule monthly rent, subscriptions, or salary so due items post automatically."
+  },
+  {
+    id: "faq-backup-restore",
+    category: "Backup & Reports",
+    q: "How should I back up and restore my data safely?",
+    a: "Go to More → Reports, Data & Backup:\n• Backup JSON saves your transactions, deleted records, categories, wallets, recurring schedules, loans, goals, and display settings to a .json file.\n• For security, your 4-digit PIN and security answer are never exported.\n• Use Restore From JSON Backup to validate and import a backup after confirmation."
+  },
+  {
+    id: "faq-csv-pdf",
+    category: "Backup & Reports",
+    q: "How do I export a PDF summary or filtered CSV (with Bengali text)?",
+    a: "• Export PDF Financial Summary generates a printable financial report.\n• Export CSV saves a UTF-8 file compatible with Excel/Google Sheets while preserving Bengali text and neutralizing spreadsheet formula injection.\n• You can also filter by custom date range in Activity and tap Export CSV there for a filtered statement."
+  },
+  {
+    id: "faq-security",
+    category: "Security",
+    q: "How do App PIN Lock, Privacy Mode, and PIN Reset work?",
+    a: "Open More → Security & Passcode:\n• 4-Digit App PIN Lock protects your local ledger and lets you set an Auto-Lock inactivity timer. Save a Security Question to reset a forgotten PIN.\n• Hide Balances (Privacy Mode) masks wallet and net-worth amounts on screen when viewing in public."
+  },
+  {
+    id: "faq-notifs-updates",
+    category: "Security",
+    q: "How do notifications and App Updates work?",
+    a: "• Tap the bell icon in the top bar to view budget alerts, recurring/loan reminders, and announcements. Tapping a notification marks it as read and reduces the unread badge count.\n• Open More → Check for Updates anytime to verify if a newer version of Asbily Expense Tracker is available."
+  }
+];
+
+let helpFilterCat = "all";
+let helpSearchTimer = null;
+const helpOpenIds = new Set(["faq-record"]);
+
+function setHelpFilter(cat) {
+  helpFilterCat = cat || "all";
+  haptic(6);
+  document.querySelectorAll("#helpTopicChips .m3-chip").forEach(btn => {
+    btn.classList.toggle("selected", btn.dataset.helpCat === helpFilterCat);
+  });
+  renderHelp();
+}
+
+function scheduleHelpSearch() {
+  clearTimeout(helpSearchTimer);
+  helpSearchTimer = setTimeout(() => renderHelp(), 100);
+}
+
+function toggleHelpFaq(id) {
+  haptic(6);
+  if (helpOpenIds.has(id)) helpOpenIds.delete(id);
+  else helpOpenIds.add(id);
+  renderHelp();
+}
+
+function renderHelp() {
+  const listEl = document.getElementById("helpFaqList");
+  if (!listEl) return;
+
+  const qRaw = String(document.getElementById("helpSearchInput")?.value || "").trim().toLowerCase();
+  const filtered = HELP_FAQS.filter(item => {
+    const catOk = helpFilterCat === "all" || item.category === helpFilterCat;
+    if (!catOk) return false;
+    if (!qRaw) return true;
+    return (
+      item.q.toLowerCase().includes(qRaw) ||
+      item.a.toLowerCase().includes(qRaw) ||
+      item.category.toLowerCase().includes(qRaw)
+    );
+  });
+
+  if (!filtered.length) {
+    listEl.innerHTML = `
+      <div class="m3-card" style="text-align:center;padding:24px 16px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px">No matching help topics</div>
+        <div class="sub-note">Try a different keyword or select "All" above.</div>
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(item => {
+    const isOpen = qRaw ? true : helpOpenIds.has(item.id);
+    return `
+      <div class="help-faq-card${isOpen ? " open" : ""}">
+        <button type="button" class="help-faq-trigger ripple-host" onclick="toggleHelpFaq('${esc(item.id)}')" aria-expanded="${isOpen ? "true" : "false"}">
+          <div class="help-faq-q-wrap">
+            <span class="help-topic-tag">${esc(item.category)}</span>
+            <div class="help-faq-q">${esc(item.q)}</div>
+          </div>
+          <svg class="help-faq-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="help-faq-body">${esc(item.a)}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ==========================================================================
+   SHARE APP (ANDROID BRIDGE, WEB SHARE API & CLIPBOARD FALLBACK)
+   ========================================================================== */
+function getSharePayload() {
+  const title = "Asbily Expense Tracker";
+  const url = ASBILY_APP_PAGE;
+  const text = `Track daily expenses, manage wallets, loans, and savings goals privately with Asbily Expense Tracker (v${APP_VERSION}).`;
+  return {
+    title,
+    text,
+    url,
+    fullText: `${title}\n${text}\n${url}`
+  };
+}
+
+function copyTextReliably(text) {
+  if (typeof navigator !== "undefined" && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+    return navigator.clipboard.writeText(text).then(() => true).catch(() => legacyExecCopy(text));
+  }
+  return Promise.resolve(legacyExecCopy(text));
+}
+
+function legacyExecCopy(text) {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = typeof document.execCommand === "function" ? document.execCommand("copy") : false;
+    ta.remove();
+    return Boolean(ok);
+  } catch {
+    return false;
+  }
+}
+
+function openShareAppSheet() {
+  haptic(8);
+  const payload = getSharePayload();
+  const prevEl = document.getElementById("sharePreviewText");
+  if (prevEl) prevEl.textContent = payload.text;
+  const linkEl = document.getElementById("shareLinkText");
+  if (linkEl) linkEl.textContent = payload.url.replace(/^https?:\/\//, "");
+  openSheet("shareSheetScrim");
+}
+
+async function copyShareText(mode = "link") {
+  haptic(8);
+  const payload = getSharePayload();
+  const value = mode === "message" ? payload.fullText : payload.url;
+  const label = mode === "message" ? "Invite message" : "App link";
+  const ok = await copyTextReliably(value);
+  if (ok) {
+    showSnackbar(`${label} copied to clipboard`);
+  } else {
+    showSnackbar(value);
+  }
+}
+
+async function shareAsbilyApp() {
+  haptic(8);
+  const payload = getSharePayload();
+
+  // 1. Optional native Android Share Bridge (if implemented by host WebView)
+  try {
+    const bridge = getAndroidBridge();
+    if (bridge && typeof bridge.shareApp === "function") {
+      bridge.shareApp(payload.title, payload.text, payload.url);
+      closeSheet("shareSheetScrim");
+      return;
+    }
+    if (bridge && typeof bridge.shareText === "function") {
+      bridge.shareText(payload.fullText);
+      closeSheet("shareSheetScrim");
+      return;
+    }
+  } catch {}
+
+  // 2. Standard Web Share API (Android Chrome / WebView / modern mobile browsers)
+  if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+    try {
+      await navigator.share({
+        title: payload.title,
+        text: payload.text,
+        url: payload.url
+      });
+      closeSheet("shareSheetScrim");
+      showSnackbar("Thanks for sharing Asbily Expense Tracker");
+      return;
+    } catch (err) {
+      if (err && err.name === "AbortError") {
+        return; // User dismissed native share sheet cleanly
+      }
+    }
+  }
+
+  // 3. Safe fallback when native share is unavailable (e.g. desktop / restricted iframe)
+  const copied = await copyTextReliably(payload.fullText);
+  if (copied) {
+    showSnackbar("Share link & message copied to clipboard");
+  } else {
+    showSnackbar(payload.url);
+  }
 }
 
 /* ==========================================================================
