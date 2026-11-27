@@ -7250,6 +7250,15 @@ function applyTitleSuggestion(idx) {
   }
 }
 
+let sessionTxAdCounter = 0;
+function notifyAndroidAdMoment(trigger) {
+  try {
+    if (window.Android && typeof window.Android.maybeShowInterstitial === "function") {
+      window.Android.maybeShowInterstitial(String(trigger || ""));
+    }
+  } catch {}
+}
+
 function saveTransaction(e) {
   e.preventDefault();
   const isTransfer = txFormType === "transfer";
@@ -7305,6 +7314,12 @@ function saveTransaction(e) {
   closeSheet("txSheetScrim");
   renderAll();
   notifyMobileForFinancialState({ includeRecurring: false });
+  if (!wasEdit) {
+    sessionTxAdCounter += 1;
+    if (sessionTxAdCounter % 4 === 0) {
+      setTimeout(() => notifyAndroidAdMoment("tx_saved"), 450);
+    }
+  }
 
   const fin = getFinancialAlertState();
   const walletAlert = fin.walletAlerts.find(w => w.id === entry.walletId || (entry.toWalletId && w.id === entry.toWalletId));
@@ -9306,6 +9321,11 @@ function renderSettingsUI() {
   document.body.classList.toggle("dark", settings.dark);
   document.body.setAttribute("data-accent", settings.accent);
   document.getElementById("metaThemeColor").setAttribute("content", settings.dark ? "#0f1115" : "#f8f9fb");
+  try {
+    if (window.Android && typeof window.Android.setAdTheme === "function") {
+      window.Android.setAdTheme(Boolean(settings.dark));
+    }
+  } catch {}
 
   document.getElementById("settingDarkSwitch").checked = settings.dark;
   const hapEl = document.getElementById("settingHapticSwitch");
@@ -10416,6 +10436,7 @@ window.onAndroidDocumentSaved = function (success, message) {
     } else {
       showSnackbar("Backup saved successfully.");
     }
+    setTimeout(() => notifyAndroidAdMoment("export_" + String(kind || "file")), 500);
     return;
   }
   if (/cancel/i.test(msgStr)) {

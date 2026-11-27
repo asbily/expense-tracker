@@ -18,6 +18,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Base64
 import android.util.TypedValue
 import android.view.Gravity
@@ -47,17 +48,36 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.webkit.WebViewAssetLoader
 import com.google.firebase.messaging.FirebaseMessaging
+import com.startapp.sdk.ads.banner.Banner
+import com.startapp.sdk.ads.banner.BannerListener
+import com.startapp.sdk.adsbase.Ad
+import com.startapp.sdk.adsbase.StartAppAd
+import com.startapp.sdk.adsbase.StartAppSDK
+import com.startapp.sdk.adsbase.adlisteners.AdDisplayListener
+import com.startapp.sdk.adsbase.adlisteners.AdEventListener
 import org.json.JSONObject
 import java.nio.charset.StandardCharsets
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
+    private lateinit var contentColumn: LinearLayout
+    private lateinit var adBannerDivider: View
+    private lateinit var adBannerContainer: FrameLayout
     private lateinit var splashOverlay: FrameLayout
     private val mainHandler = Handler(Looper.getMainLooper())
     private var splashDismissed = false
     private val splashTimeoutRunnable = Runnable { dismissSplashOverlay(immediate = false) }
     private var fileChooserCallback: ValueCallback<Array<Uri>>? = null
+
+    private var startIoInitialized = false
+    private var startIoBanner: Banner? = null
+    private var bannerRetryCount = 0
+    private var interstitialAd: StartAppAd? = null
+    private var isInterstitialLoaded = false
+    private var isInterstitialLoading = false
+    private val appStartElapsedMs = SystemClock.elapsedRealtime()
+    private var lastInterstitialShownElapsedMs = 0L
 
     private var pendingSaveBytes: ByteArray? = null
     private var pendingSaveFilename: String = "asbily-backup.json"
@@ -73,6 +93,9 @@ class MainActivity : AppCompatActivity() {
         private const val ENTRY_URL = "https://appassets.androidplatform.net/assets/www/index.html"
         private const val NOTIF_CHANNEL_ID = "asbily_alerts_v2"
         private const val NOTIF_CHANNEL_NAME = "Asbily Reminders & Alerts"
+        private const val DEMO_STARTIO_APP_ID = "205489527"
+        private const val INTERSTITIAL_STARTUP_GRACE_MS = 25_000L
+        private const val INTERSTITIAL_COOLDOWN_MS = 180_000L
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -91,16 +114,48 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        webView = WebView(this).apply {
+        contentColumn = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             setBackgroundColor(Color.parseColor("#F8F9FB"))
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
         }
+
+        webView = WebView(this).apply {
+            setBackgroundColor(Color.parseColor("#F8F9FB"))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+        }
+
+        adBannerDivider = View(this).apply {
+            setBackgroundColor(Color.parseColor("#E5E7EB"))
+            visibility = View.GONE
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(1)
+            )
+        }
+
+        adBannerContainer = FrameLayout(this).apply {
+            setBackgroundColor(Color.parseColor("#F8F9FB"))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        contentColumn.addView(webView)
+        contentColumn.addView(adBannerDivider)
+        contentColumn.addView(adBannerContainer)
+
         splashOverlay = createSplashOverlay()
 
-        rootContainer.addView(webView)
+        rootContainer.addView(contentColumn)
         rootContainer.addView(splashOverlay)
         setContentView(rootContainer)
 
@@ -202,6 +257,7 @@ class MainActivity : AppCompatActivity() {
 
         maybeRequestNotificationPermission()
         initFirebaseMessaging()
+        initStartIoAds()
     }
 
     override fun onResume() {
@@ -407,6 +463,146 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun initStartIoAds() {
+        val appId = try {
+            getString(R.string.startio_app_id).trim()
+        } catch (_: Exception) {
+            ""
+        }
+        val accountId = try {
+            getString(R.string.startio_account_id).trim()
+        } catch (_: Exception) {
+            ""
+        }
+        if (appId.isBlank() || appId == "YOUR_STARTIO_APP_ID") return
+        try {
+            val initBuilder = StartAppSDK.initParams(applicationContext, appId)
+                .setReturnAdsEnabled(false)
+                .setCallback {
+                    runOnUiThread {
+                        if (!isFinishing && !isDestroyed && !startIoInitialized) {
+                            startIoInitialized = true
+                            setupStartIoBanner()
+                            preloadInterstitialAd()
+                        }
+                    }
+                }
+            if (accountId.isNotBlank()) {
+                initBuilder.setAccountId(accountId)
+            }
+            initBuilder.init()
+            StartAppSDK.enableReturnAds(false)
+            if (appId == DEMO_STARTIO_APP_ID) {
+                StartAppSDK.setTestAdsEnabled(true)
+            }
+            mainHandler.postDelayed({
+                if (!isFinishing && !isDestroyed && !startIoInitialized) {
+                    startIoInitialized = true
+                    setupStartIoBanner()
+                    preloadInterstitialAd()
+                }
+            }, 900L)
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun setupStartIoBanner() {
+        if (startIoBanner != null) return
+        try {
+            val banner = Banner(this, object : BannerListener {
+                override fun onReceiveAd(bannerView: View?) {
+                    adBannerDivider.visibility = View.VISIBLE
+                    adBannerContainer.visibility = View.VISIBLE
+                    startIoBanner?.showBanner()
+                }
+
+                override fun onFailedToReceiveAd(bannerView: View?) {
+                    adBannerDivider.visibility = View.GONE
+                    adBannerContainer.visibility = View.GONE
+                    if (bannerRetryCount < 2) {
+                        bannerRetryCount += 1
+                        mainHandler.postDelayed({
+                            if (!isFinishing && !isDestroyed) {
+                                adBannerContainer.visibility = View.VISIBLE
+                                startIoBanner?.loadAd(320, 50)
+                            }
+                        }, 20_000L)
+                    }
+                }
+
+                override fun onImpression(bannerView: View?) {}
+
+                override fun onClick(bannerView: View?) {}
+            })
+            val lp = FrameLayout.LayoutParams(
+                dp(320),
+                dp(50),
+                Gravity.CENTER_HORIZONTAL
+            )
+            adBannerContainer.visibility = View.VISIBLE
+            adBannerContainer.removeAllViews()
+            adBannerContainer.addView(banner, lp)
+            startIoBanner = banner
+            banner.loadAd(320, 50)
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun preloadInterstitialAd() {
+        if (!startIoInitialized || isInterstitialLoading || isInterstitialLoaded) return
+        try {
+            isInterstitialLoading = true
+            val ad = interstitialAd ?: StartAppAd(this).also { interstitialAd = it }
+            ad.loadAd(object : AdEventListener {
+                override fun onReceiveAd(adObj: Ad) {
+                    isInterstitialLoading = false
+                    isInterstitialLoaded = true
+                }
+
+                override fun onFailedToReceiveAd(adObj: Ad?) {
+                    isInterstitialLoading = false
+                    isInterstitialLoaded = false
+                }
+            })
+        } catch (_: Exception) {
+            isInterstitialLoading = false
+            isInterstitialLoaded = false
+        }
+    }
+
+    private fun showInterstitialIfReady() {
+        val now = SystemClock.elapsedRealtime()
+        if (now - appStartElapsedMs < INTERSTITIAL_STARTUP_GRACE_MS) return
+        if (lastInterstitialShownElapsedMs != 0L && now - lastInterstitialShownElapsedMs < INTERSTITIAL_COOLDOWN_MS) return
+
+        val ad = interstitialAd
+        if (ad != null && isInterstitialLoaded) {
+            isInterstitialLoaded = false
+            try {
+                ad.showAd(object : AdDisplayListener {
+                    override fun adHidden(adObj: Ad) {
+                        lastInterstitialShownElapsedMs = SystemClock.elapsedRealtime()
+                        preloadInterstitialAd()
+                    }
+
+                    override fun adDisplayed(adObj: Ad) {
+                        lastInterstitialShownElapsedMs = SystemClock.elapsedRealtime()
+                    }
+
+                    override fun adClicked(adObj: Ad) {}
+
+                    override fun adNotDisplayed(adObj: Ad) {
+                        preloadInterstitialAd()
+                    }
+                })
+            } catch (_: Exception) {
+                preloadInterstitialAd()
+            }
+        } else {
+            preloadInterstitialAd()
+        }
+    }
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -606,6 +802,27 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun openBackup() {
             openDocument("application/json")
+        }
+
+        @Suppress("UNUSED_PARAMETER")
+        @JavascriptInterface
+        fun maybeShowInterstitial(trigger: String?) {
+            runOnUiThread {
+                if (!isFinishing && !isDestroyed) {
+                    showInterstitialIfReady()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun setAdTheme(isDark: Boolean) {
+            runOnUiThread {
+                val bgColor = Color.parseColor(if (isDark) "#0F1115" else "#F8F9FB")
+                val dividerColor = Color.parseColor(if (isDark) "#22262E" else "#E5E7EB")
+                contentColumn.setBackgroundColor(bgColor)
+                adBannerContainer.setBackgroundColor(bgColor)
+                adBannerDivider.setBackgroundColor(dividerColor)
+            }
         }
     }
 }

@@ -58,4 +58,5 @@ dependencies {
     implementation("androidx.webkit:webkit:1.11.0")
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.startapp:inapp-sdk:5.2.6")
 }

@@ -10,6 +10,9 @@ function copyLogoPlugin() {
       if (fs.existsSync('asbily-logo.jpg')) {
         fs.copyFileSync('asbily-logo.jpg', path.join(outDir, 'asbily-logo.jpg'));
       }
+      if (fs.existsSync('app-ads.txt')) {
+        fs.copyFileSync('app-ads.txt', path.join(outDir, 'app-ads.txt'));
+      }
     }
   };
 }

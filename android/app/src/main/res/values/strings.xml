@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Expense</string>
+    <!-- Start.io Production Account ID & App ID -->
+    <string name="startio_account_id">190864385</string>
+    <string name="startio_app_id">210822948</string>
+</resources>
