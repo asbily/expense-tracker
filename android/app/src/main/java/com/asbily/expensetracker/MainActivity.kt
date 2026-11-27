@@ -8,10 +8,22 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.Typeface
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Base64
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -20,6 +32,11 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,13 +44,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.webkit.WebViewAssetLoader
+import com.google.firebase.messaging.FirebaseMessaging
 import org.json.JSONObject
 import java.nio.charset.StandardCharsets
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
+    private lateinit var splashOverlay: FrameLayout
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var splashDismissed = false
+    private val splashTimeoutRunnable = Runnable { dismissSplashOverlay(immediate = false) }
     private var fileChooserCallback: ValueCallback<Array<Uri>>? = null
 
     private var pendingSaveBytes: ByteArray? = null
@@ -48,7 +71,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val ASSET_ORIGIN = "appassets.androidplatform.net"
         private const val ENTRY_URL = "https://appassets.androidplatform.net/assets/www/index.html"
-        private const val NOTIF_CHANNEL_ID = "asbily_alerts"
+        private const val NOTIF_CHANNEL_ID = "asbily_alerts_v2"
         private const val NOTIF_CHANNEL_NAME = "Asbily Reminders & Alerts"
     }
 
@@ -56,11 +79,30 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        applySystemBarColors()
         createNotificationChannel()
         registerActivityLaunchers()
 
-        webView = WebView(this)
-        setContentView(webView)
+        val rootContainer = FrameLayout(this).apply {
+            setBackgroundColor(Color.parseColor("#F8F9FB"))
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+
+        webView = WebView(this).apply {
+            setBackgroundColor(Color.parseColor("#F8F9FB"))
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+        splashOverlay = createSplashOverlay()
+
+        rootContainer.addView(webView)
+        rootContainer.addView(splashOverlay)
+        setContentView(rootContainer)
 
         val assetLoader = WebViewAssetLoader.Builder()
             .setDomain(ASSET_ORIGIN)
@@ -106,6 +148,16 @@ class MainActivity : AppCompatActivity() {
                 openExternalUri(uri)
                 return true
             }
+
+            override fun onPageCommitVisible(view: WebView, url: String?) {
+                super.onPageCommitVisible(view, url)
+                mainHandler.postDelayed({ dismissSplashOverlay(immediate = false) }, 120L)
+            }
+
+            override fun onPageFinished(view: WebView, url: String?) {
+                super.onPageFinished(view, url)
+                mainHandler.postDelayed({ dismissSplashOverlay(immediate = false) }, 120L)
+            }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
@@ -142,16 +194,137 @@ class MainActivity : AppCompatActivity() {
 
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState)
+            dismissSplashOverlay(immediate = true)
         } else {
+            mainHandler.postDelayed(splashTimeoutRunnable, 3200L)
             webView.loadUrl(ENTRY_URL)
         }
 
         maybeRequestNotificationPermission()
+        initFirebaseMessaging()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applySystemBarColors()
+    }
+
+    override fun onDestroy() {
+        mainHandler.removeCallbacksAndMessages(null)
+        super.onDestroy()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         webView.saveState(outState)
+    }
+
+    private fun dp(value: Int): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            value.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+    }
+
+    private fun createSplashOverlay(): FrameLayout {
+        val overlay = FrameLayout(this).apply {
+            setBackgroundColor(Color.parseColor("#F8F9FB"))
+            isClickable = true
+            isFocusable = true
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.CENTER
+            )
+        }
+
+        val logoView = ImageView(this).apply {
+            setImageResource(R.mipmap.ic_launcher)
+            contentDescription = "Asbily Logo"
+            layoutParams = LinearLayout.LayoutParams(dp(76), dp(76))
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Asbily"
+            setTextColor(Color.parseColor("#111315"))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+            setTypeface(Typeface.DEFAULT_BOLD)
+            letterSpacing = -0.02f
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(16)
+            }
+        }
+
+        val subtitleView = TextView(this).apply {
+            text = "Expense Tracker"
+            setTextColor(Color.parseColor("#5F6368"))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f)
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(2)
+            }
+        }
+
+        val spinner = ProgressBar(this).apply {
+            isIndeterminate = true
+            indeterminateTintList = ColorStateList.valueOf(Color.parseColor("#111315"))
+            layoutParams = LinearLayout.LayoutParams(dp(24), dp(24)).apply {
+                topMargin = dp(22)
+            }
+        }
+
+        container.addView(logoView)
+        container.addView(titleView)
+        container.addView(subtitleView)
+        container.addView(spinner)
+        overlay.addView(container)
+        return overlay
+    }
+
+    private fun dismissSplashOverlay(immediate: Boolean) {
+        if (splashDismissed) return
+        splashDismissed = true
+        mainHandler.removeCallbacks(splashTimeoutRunnable)
+        if (immediate) {
+            splashOverlay.visibility = View.GONE
+            return
+        }
+        splashOverlay.animate()
+            .alpha(0f)
+            .setDuration(220L)
+            .withEndAction {
+                splashOverlay.visibility = View.GONE
+            }
+            .start()
+    }
+
+    private fun applySystemBarColors() {
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        window.statusBarColor = Color.BLACK
+        window.navigationBarColor = Color.BLACK
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.isAppearanceLightStatusBars = false
+        insetsController.isAppearanceLightNavigationBars = false
     }
 
     private fun registerActivityLaunchers() {
@@ -219,16 +392,43 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun initFirebaseMessaging() {
+        try {
+            FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+                if (!token.isNullOrBlank()) {
+                    getSharedPreferences(AsbilyFirebaseMessagingService.PREFS_NAME, Context.MODE_PRIVATE)
+                        .edit()
+                        .putString(AsbilyFirebaseMessagingService.KEY_FCM_TOKEN, token)
+                        .apply()
+                }
+            }
+            FirebaseMessaging.getInstance().subscribeToTopic("all")
+        } catch (_: Exception) {
+        }
+    }
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nm.deleteNotificationChannel(AsbilyFirebaseMessagingService.LEGACY_CHANNEL_ID)
+
+            val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            val audioAttrs = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+
             val channel = NotificationChannel(
                 NOTIF_CHANNEL_ID,
                 NOTIF_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Budget, recurring schedule, and loan reminders"
+                description = "Asbily Expense Tracker announcements, updates & reminders"
+                setSound(soundUri, audioAttrs)
+                enableLights(true)
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0L, 180L, 90L, 180L)
             }
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.createNotificationChannel(channel)
         }
     }
@@ -285,6 +485,7 @@ class MainActivity : AppCompatActivity() {
 
     inner class AndroidBridge {
 
+        @Suppress("UNUSED_PARAMETER")
         @JavascriptInterface
         fun showNotification(title: String?, body: String?, view: String?, action: String?) {
             val safeTitle = title?.takeIf { it.isNotBlank() } ?: "Asbily Expense Tracker"
@@ -301,18 +502,28 @@ class MainActivity : AppCompatActivity() {
             }
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             val pendingIntent = PendingIntent.getActivity(this@MainActivity, 0, tapIntent, flags)
+            val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
             val notification = NotificationCompat.Builder(this@MainActivity, NOTIF_CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_notif_asbily)
                 .setContentTitle(safeTitle)
                 .setContentText(safeBody)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(safeBody))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setSound(soundUri)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
                 .build()
 
             val notifId = (System.currentTimeMillis() and 0x7FFFFFFF).toInt()
             NotificationManagerCompat.from(this@MainActivity).notify(notifId, notification)
+        }
+
+        @JavascriptInterface
+        fun getFcmToken(): String {
+            return getSharedPreferences(AsbilyFirebaseMessagingService.PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(AsbilyFirebaseMessagingService.KEY_FCM_TOKEN, "") ?: ""
         }
 
         @JavascriptInterface

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "898010765732",
+    "firebase_url": "https://asbily-default-rtdb.firebaseio.com",
+    "project_id": "asbily",
+    "storage_bucket": "asbily.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:898010765732:android:1981370ae6f064dd984931",
+        "android_client_info": {
+          "package_name": "com.asbily.expensetracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "898010765732-fmvp8rer4apks82c1gbgemh55mlnt8e7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDchGMLx4GBB4MvFdaqO_lCzDeGNfEWcGo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "898010765732-fmvp8rer4apks82c1gbgemh55mlnt8e7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
